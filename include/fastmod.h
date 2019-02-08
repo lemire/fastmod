@@ -30,6 +30,11 @@ static inline uint32_t fastmod_u32(uint32_t a, uint64_t M, uint32_t d) {
 static inline uint32_t fastdiv_u32(uint32_t a, uint64_t M) {
   return ( (__uint128_t) M * a ) >> 64;
 }
+
+// given precomputed M, checks whether n % d == 0
+static inline bool is_divisible(uint32_t n, uint64_t M) {
+  return n * M <= M - 1;
+}
 /**
 * signed integers
 * Usage:

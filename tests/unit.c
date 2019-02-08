@@ -27,6 +27,10 @@ bool testunsigned(uint32_t min, uint32_t max, bool verbose) {
         printf("got %u mod %u = %u \n", a, d, computedFastMod);
         return false;
       }
+      if((computedMod == 0) != is_divisible(a, M)) {
+        printf("problem with divisibility test. divisor %u and dividend %u \n", d, a);
+        return false;
+      }
       computedMod++; // presumably, this is faster than computedMod = a % d
       if (computedMod == d)
         computedMod = 0;
@@ -184,7 +188,7 @@ bool testdivsigned_ofk(int32_t min, int32_t max, bool verbose) {
       printf("skipping d = -1 as it is not supported\n");
       continue;
     }
-    
+
     if (d == 2) {
       printf("skipping d = 2 as it is not supported\n");
       continue;
@@ -233,7 +237,7 @@ bool testdivsigned_ofk2(int32_t min, int32_t max, bool verbose) {
       continue;
     }
 
-    
+
     if (d == 1) {
       printf("skipping d = 1 as it is not supported\n");
       continue;
@@ -257,7 +261,7 @@ bool testdivsigned_ofk2(int32_t min, int32_t max, bool verbose) {
       printf("skipping d = -2147483648 as it is unsupported\n");
       continue;
     }
-    
+
     uint64_t M = computeM_s32(d);
     if (verbose)
       printf("d = %d (signed) ", d);
@@ -292,7 +296,7 @@ bool testdivsigned_ofk_special(int32_t min, int32_t max, bool verbose) {
       continue;
     }
 
-   
+
     if (d == 1) {
       printf("skipping d = 1 as it is not supported\n");
       continue;
@@ -301,7 +305,7 @@ bool testdivsigned_ofk_special(int32_t min, int32_t max, bool verbose) {
       printf("skipping d = -1 as it is not supported\n");
       continue;
     }
-    
+
     if (d == 2) {
       printf("skipping d = 2 as it is not supported\n");
       continue;
@@ -310,12 +314,12 @@ bool testdivsigned_ofk_special(int32_t min, int32_t max, bool verbose) {
       printf("skipping d = -2 as it is not supported\n");
       continue;
     }
-    
+
     if (d == -2147483648) {
       printf("skipping d = -2147483648 as it is unsupported\n");
       continue;
     }
-    
+
     uint64_t M = computeM_s32(d);
     if (verbose)
       printf("d = %d (signed) ", d);
@@ -358,12 +362,12 @@ int main() {
   isok = isok && testdivsigned_ofk_special(2,10,verbose);
   isok = isok && testdivsigned_ofk_special(0x7ffffff8, 0x7fffffff,verbose);
   isok = isok && testdivsigned_ofk_special(-10, -2,verbose);
-    
+
   isok = isok && testdivsigned_ofk(-0x80000000, -0x7ffffff8,verbose);
   isok = isok && testdivsigned_ofk(2,10,verbose);
   isok = isok && testdivsigned_ofk(0x7ffffff8, 0x7fffffff,verbose);
   isok = isok && testdivsigned_ofk(-10, -2,verbose);
- #endif   
+ #endif
   isok = isok && testdivsigned(-0x80000000, -0x7ffffff8,verbose);
   isok = isok && testdivsigned(2,10,verbose);
   isok = isok && testdivsigned(0x7ffffff8, 0x7fffffff,verbose);
@@ -397,4 +401,3 @@ int main() {
     return -1;
   }
 }
-
