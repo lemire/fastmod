@@ -1,10 +1,11 @@
 # fastmod
+[![Build Status](https://travis-ci.org/lemire/fastmod.svg?branch=master)](https://travis-ci.org/lemire/fastmod)
 
 A header file for fast 32-bit division remainders  on 64-bit hardware.
 
 How fast? Faster than your compiler can do it!
 
-Compilers cleverly replace divisions by multiplications and shifts, if the divisor is known at compile time. In a hashing benchmark, our simple C code can beat a state-of-the-art compiler (LLVM clang) on a recent Intel processor (Skylake).
+Compilers cleverly replace divisions by multiplications and shifts, if the divisor is known at compile time. In a hashing benchmark, our simple C code can beat  state-of-the-art compilers (e.g., LLVM clang, GNU GCC) on a recent Intel processor (Skylake).
 
 <img src="docs/hashbenches-skylake-clang.png" width="90%">
 
@@ -14,6 +15,8 @@ Further reading:
 
 
 ##  Usage
+
+We support all major compilers (LLVM's clang, GNU GCC, Visual Studio). Users of Visual Studio need to compile to a 64-bit binary (x64).
 
 It is a header-only library but we have unit tests. Assuming a Linux/macOS setting:
 

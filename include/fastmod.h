@@ -6,12 +6,9 @@
 
 #ifdef _MSC_VER
 #include <intrin.h>
+// __umulh is only available in x64 mode under Visual Studio: don't compile to 32-bit!
 static inline uint64_t mul128_u32(uint64_t lowbits, uint32_t d) {
   return __umulh(lowbits, d);
-}
-
-static inline uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
-  return __mulh(lowbits, d);
 }
 #else
 static inline uint64_t mul128_u32(uint64_t lowbits, uint32_t d) {
@@ -79,6 +76,7 @@ static inline int32_t fastmod_s32(int32_t a, uint64_t M, int32_t positive_d) {
   return highbits - ((positive_d - 1) & (a >> 31));
 }
 
+#ifndef _MSC_VER
 // fastmod computes (a / d) given precomputed M, assumes that d must not
 // be one of -1, 1, or -2147483648
 static inline int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
@@ -88,5 +86,6 @@ static inline int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
     return -(int32_t)(highbits);
   return (int32_t)(highbits);
 }
+#endif // #ifndef _MSC_VER
 
 #endif
