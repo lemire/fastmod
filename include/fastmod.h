@@ -1,84 +1,92 @@
 #ifndef FASTMOD_H
 #define FASTMOD_H
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef _MSC_VER
 #include <intrin.h>
-	static inline uint64_t mul128(uint64_t lowbits, uint32_t d) {
-		return __umulh(lowbits, d);
-	}
+static inline uint64_t mul128_u32(uint64_t lowbits, uint32_t d) {
+  return __umulh(lowbits, d);
+}
+
+static inline uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
+  return __mulh(lowbits, d);
+}
 #else
-	static inline uint64_t mul128(uint64_t lowbits, uint32_t d) {
-		return ((__uint128_t)lowbits * d) >> 64;
-	}
+static inline uint64_t mul128_u32(uint64_t lowbits, uint32_t d) {
+  return ((__uint128_t)lowbits * d) >> 64;
+}
+
+static inline uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
+  return ((__int128_t)lowbits * d) >> 64;
+}
 #endif
 
-
 /**
-* Unsigned integers.
-* Usage:
-*  uint32_t d = ... ; // divisor, should be non-zero
-*  uint64_t M = computeM_u32(d); // do once
-*  fastmod_u32(a,M,d) is a % d for all 32-bit a.
-*
-**/
+ * Unsigned integers.
+ * Usage:
+ *  uint32_t d = ... ; // divisor, should be non-zero
+ *  uint64_t M = computeM_u32(d); // do once
+ *  fastmod_u32(a,M,d) is a % d for all 32-bit a.
+ *
+ **/
 
 // M = ceil( (1<<64) / d ), d > 0
 static inline uint64_t computeM_u32(uint32_t d) {
-	return UINT64_C(0xFFFFFFFFFFFFFFFF) / d + 1;
+  return UINT64_C(0xFFFFFFFFFFFFFFFF) / d + 1;
 }
 
 // fastmod computes (a % d) given precomputed M
 static inline uint32_t fastmod_u32(uint32_t a, uint64_t M, uint32_t d) {
-	uint64_t lowbits = M * a;
-	return uint32_t(mul128(lowbits, d));
+  uint64_t lowbits = M * a;
+  return (uint32_t)(mul128_u32(lowbits, d));
 }
 
 // fastmod computes (a / d) given precomputed M for d>1
 static inline uint32_t fastdiv_u32(uint32_t a, uint64_t M) {
-	return uint32_t(mul128(M, a));
+  return (uint32_t)(mul128_u32(M, a));
 }
 
 // given precomputed M, checks whether n % d == 0
 static inline bool is_divisible(uint32_t n, uint64_t M) {
-	return n * M <= M - 1;
+  return n * M <= M - 1;
 }
+
 /**
-* signed integers
-* Usage:
-*  int32_t d = ... ; // should be non-zero and between [-2147483647,2147483647]
-*  int32_t positive_d = d < 0 ? -d : d; // absolute value
-*  uint64_t M = computeM_s32(d); // do once
-*  fastmod_s32(a,M,positive_d) is a % d for all 32-bit a.
-**/
+ * signed integers
+ * Usage:
+ *  int32_t d = ... ; // should be non-zero and between [-2147483647,2147483647]
+ *  int32_t positive_d = d < 0 ? -d : d; // absolute value
+ *  uint64_t M = computeM_s32(d); // do once
+ *  fastmod_s32(a,M,positive_d) is a % d for all 32-bit a.
+ **/
 
 // M = floor( (1<<64) / d ) + 1
 // you must have that d is different from 0 and -2147483648
 // if d = -1 and a = -2147483648, the result is undefined
 static inline uint64_t computeM_s32(int32_t d) {
-	if (d < 0)
-		d = -d;
-	return UINT64_C(0xFFFFFFFFFFFFFFFF) / d + 1 + ((d & (d - 1)) == 0 ? 1 : 0);
+  if (d < 0)
+    d = -d;
+  return UINT64_C(0xFFFFFFFFFFFFFFFF) / d + 1 + ((d & (d - 1)) == 0 ? 1 : 0);
 }
 
 // fastmod computes (a % d) given precomputed M,
 // you should pass the absolute value of d
 static inline int32_t fastmod_s32(int32_t a, uint64_t M, int32_t positive_d) {
-	uint64_t lowbits = M * a;
-	int32_t highbits = uint32_t(mul128(lowbits, positive_d));
-	return highbits - ((positive_d - 1) & (a >> 31));
+  uint64_t lowbits = M * a;
+  int32_t highbits = mul128_u32(lowbits, positive_d);
+  return highbits - ((positive_d - 1) & (a >> 31));
 }
 
 // fastmod computes (a / d) given precomputed M, assumes that d must not
 // be one of -1, 1, or -2147483648
 static inline int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
-	uint64_t highbits = mul128(M, a); 
-	highbits += (a < 0 ? 1 : 0);
-	if (d < 0) return  -int32_t(highbits);
-	return int32_t(highbits);
+  uint64_t highbits = mul128_s32(M, a);
+  highbits += (a < 0 ? 1 : 0);
+  if (d < 0)
+    return -(int32_t)(highbits);
+  return (int32_t)(highbits);
 }
-
 
 #endif
