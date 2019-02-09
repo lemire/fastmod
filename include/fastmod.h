@@ -19,28 +19,21 @@
 
 #ifdef _MSC_VER
 #include <intrin.h>
+#endif
 
 #ifdef __cplusplus
 namespace {
 namespace fastmod {
 #endif
+
+#ifdef _MSC_VER
 
 // __umulh is only available in x64 mode under Visual Studio: don't compile to 32-bit!
 FASTMOD_API uint64_t mul128_u32(uint64_t lowbits, uint32_t d) {
   return __umulh(lowbits, d);
 }
 
-#ifdef __cplusplus
-} // fastmod
-}
-#endif
-
 #else // _MSC_VER NOT defined
-
-#ifdef __cpluslus
-namespace {
-namespace fastmod {
-#endif
 
 FASTMOD_API uint64_t mul128_u32(uint64_t lowbits, uint32_t d) {
   return ((__uint128_t)lowbits * d) >> 64;
@@ -50,10 +43,6 @@ FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
   return ((__int128_t)lowbits * d) >> 64;
 }
 
-#ifdef __cplusplus
-} // fastmod
-}
-#endif // __cplusplus
 #endif // _MSC_VER
 
 /**
@@ -65,10 +54,6 @@ FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
  *
  **/
 
-#ifdef __cplusplus
-namespace {
-namespace fastmod {
-#endif 
 
 // M = ceil( (1<<64) / d ), d > 0
 FASTMOD_API uint64_t computeM_u32(uint32_t d) {
