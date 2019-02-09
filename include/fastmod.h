@@ -1,24 +1,60 @@
 #ifndef FASTMOD_H
 #define FASTMOD_H
 
+#ifndef __cplusplus
 #include <stdbool.h>
 #include <stdint.h>
+#else
+// In C++ <cstdbool>/<stdbool.h> are irelevant as bool is already a type
+#include <cstding>
+#endif
+
+#ifndef __cplusplus
+#define FASTMOD_API static inline
+#else
+// In C++ we achieve the effects of the above through putting everything in an
+// unnamed namespace
+#define FASTMOD_API
+#endif
 
 #ifdef _MSC_VER
 #include <intrin.h>
+
+#ifdef __cplusplus
+namespace {
+namespace fastmod {
+#endif
+
 // __umulh is only available in x64 mode under Visual Studio: don't compile to 32-bit!
-static inline uint64_t mul128_u32(uint64_t lowbits, uint32_t d) {
+FASTMOD_API uint64_t mul128_u32(uint64_t lowbits, uint32_t d) {
   return __umulh(lowbits, d);
 }
-#else
-static inline uint64_t mul128_u32(uint64_t lowbits, uint32_t d) {
+
+#ifdef __cplusplus
+} // fastmod
+}
+#endif
+
+#else // _MSC_VER NOT defined
+
+#ifdef __cpluslus
+namespace {
+namespace fastmod {
+#endif
+
+FASTMOD_API uint64_t mul128_u32(uint64_t lowbits, uint32_t d) {
   return ((__uint128_t)lowbits * d) >> 64;
 }
 
-static inline uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
+FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
   return ((__int128_t)lowbits * d) >> 64;
 }
-#endif
+
+#ifdef __cplusplus
+} // fastmod
+}
+#endif // __cplusplus
+#endif // _MSC_VER
 
 /**
  * Unsigned integers.
@@ -29,24 +65,29 @@ static inline uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
  *
  **/
 
+#ifdef __cplusplus
+namespace {
+namespace fastmod {
+#endif 
+
 // M = ceil( (1<<64) / d ), d > 0
-static inline uint64_t computeM_u32(uint32_t d) {
+FASTMOD_API uint64_t computeM_u32(uint32_t d) {
   return UINT64_C(0xFFFFFFFFFFFFFFFF) / d + 1;
 }
 
 // fastmod computes (a % d) given precomputed M
-static inline uint32_t fastmod_u32(uint32_t a, uint64_t M, uint32_t d) {
+FASTMOD_API uint32_t fastmod_u32(uint32_t a, uint64_t M, uint32_t d) {
   uint64_t lowbits = M * a;
   return (uint32_t)(mul128_u32(lowbits, d));
 }
 
 // fastmod computes (a / d) given precomputed M for d>1
-static inline uint32_t fastdiv_u32(uint32_t a, uint64_t M) {
+FASTMOD_API uint32_t fastdiv_u32(uint32_t a, uint64_t M) {
   return (uint32_t)(mul128_u32(M, a));
 }
 
 // given precomputed M, checks whether n % d == 0
-static inline bool is_divisible(uint32_t n, uint64_t M) {
+FASTMOD_API bool is_divisible(uint32_t n, uint64_t M) {
   return n * M <= M - 1;
 }
 
@@ -62,7 +103,7 @@ static inline bool is_divisible(uint32_t n, uint64_t M) {
 // M = floor( (1<<64) / d ) + 1
 // you must have that d is different from 0 and -2147483648
 // if d = -1 and a = -2147483648, the result is undefined
-static inline uint64_t computeM_s32(int32_t d) {
+FASTMOD_API uint64_t computeM_s32(int32_t d) {
   if (d < 0)
     d = -d;
   return UINT64_C(0xFFFFFFFFFFFFFFFF) / d + 1 + ((d & (d - 1)) == 0 ? 1 : 0);
@@ -70,7 +111,7 @@ static inline uint64_t computeM_s32(int32_t d) {
 
 // fastmod computes (a % d) given precomputed M,
 // you should pass the absolute value of d
-static inline int32_t fastmod_s32(int32_t a, uint64_t M, int32_t positive_d) {
+FASTMOD_API int32_t fastmod_s32(int32_t a, uint64_t M, int32_t positive_d) {
   uint64_t lowbits = M * a;
   int32_t highbits = mul128_u32(lowbits, positive_d);
   return highbits - ((positive_d - 1) & (a >> 31));
@@ -79,7 +120,7 @@ static inline int32_t fastmod_s32(int32_t a, uint64_t M, int32_t positive_d) {
 #ifndef _MSC_VER
 // fastmod computes (a / d) given precomputed M, assumes that d must not
 // be one of -1, 1, or -2147483648
-static inline int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
+FASTMOD_API int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
   uint64_t highbits = mul128_s32(M, a);
   highbits += (a < 0 ? 1 : 0);
   if (d < 0)
@@ -88,4 +129,14 @@ static inline int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
 }
 #endif // #ifndef _MSC_VER
 
+#ifdef __cplusplus
+} // fastmod
+}
 #endif
+
+// There's no reason to polute the global scope with this macro once its use ends
+// This won't create any problems as the preprocessor will have done its thing once
+// it reaches this point
+#undef FASTMOD_API
+
+#endif // FASTMOD_H
