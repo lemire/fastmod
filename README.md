@@ -29,7 +29,7 @@ The tests are exhaustive and take some time.
 
 ##  Code samples
 
-```
+```C
 #include "fastmod.h"
 
 // unsigned...
