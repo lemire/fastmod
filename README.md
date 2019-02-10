@@ -16,7 +16,7 @@ Further reading:
 
 ##  Usage
 
-We support all major compilers (LLVM's clang, GNU GCC, Visual Studio). Users of Visual Studio need to compile to a 64-bit binary (x64).
+We support all major compilers (LLVM's clang, GNU GCC, Visual Studio). Users of Visual Studio need to compile to a 64-bit binary, typically by selecting x64 in the build settings.
 
 It is a header-only library but we have unit tests. Assuming a Linux/macOS setting:
 
@@ -28,6 +28,8 @@ make
 The tests are exhaustive and take some time.
 
 ##  Code samples
+
+In C, you can use the header as follows.
 
 ```C
 #include "fastmod.h"
@@ -49,3 +51,5 @@ uint64_t M = computeM_s32(d); // do once
 
 fastmod_s32(a,M,positive_d) is a % d for all 32-bit a
 ```
+
+In C++, it is much the same except that every function is in the `fastmod` namespace so you need to prefix the calls with `fastmod::` (e.g., `fastmod::is_divisible`).
