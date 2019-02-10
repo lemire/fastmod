@@ -6,7 +6,7 @@
 #include <stdint.h>
 #else
 // In C++ <cstdbool>/<stdbool.h> are irelevant as bool is already a type
-#include <cstding>
+#include <cstdint>
 #endif
 
 #ifndef __cplusplus
