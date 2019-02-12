@@ -151,7 +151,7 @@ FASTMOD_API __uint128_t computeM_s64(int64_t d) {
 
 FASTMOD_API uint64_t fastmod_u64(uint64_t a, __uint128_t M, uint64_t d) {
   __uint128_t lowbits = M * a;
-  return (uint64_t)(mul128_u64(lowbits, d));
+  return mul128_u64(lowbits, d);
 }
 
 #ifdef __cplusplus
