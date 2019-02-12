@@ -14,7 +14,12 @@
 #else
 // In C++ we achieve the effects of the above through putting everything in an
 // unnamed namespace
+// Instead, we mark it constexpr so it can be used at compile-time if C++14 relaxed constexpr is supported.
+#if __cpp_constexpr >= 201304
+#define FASTMOD_API constexpr
+#else
 #define FASTMOD_API
+#endif
 #endif
 
 #ifdef _MSC_VER
