@@ -119,6 +119,27 @@ FASTMOD_API int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
 }
 #endif // #ifndef _MSC_VER
 
+FASTMOD_API __uint128_t computeM_u64(uint64_t d) {
+  __uint128_t M = UINT64_C(0xFFFFFFFFFFFFFFFF);
+  M <<= 64;
+  M |= UINT64_C(0xFFFFFFFFFFFFFFFF);
+  M /= d;
+  M += 1;
+  return M;
+}
+
+FASTMOD_API __uint128_t computeM_s32(int64_t d) {
+  if (d < 0)
+    d = -d;
+  __uint128_t M = UINT64_C(0xFFFFFFFFFFFFFFFF);
+  M <<= 64;
+  M |= UINT64_C(0xFFFFFFFFFFFFFFFF);
+  M /= d;
+  M += 1;
+  M += ((d & (d - 1)) == 0 ? 1 : 0);
+  return M;
+}
+
 #ifdef __cplusplus
 
 template<uint32_t d>
@@ -136,7 +157,7 @@ FASTMOD_API int32_t fastmod(int32_t x) {
     FASTMOD_API uint64_t v = computeM_s32(d);
     return fastmod_s32(x, v, d);
 }
-template<uint32_t d>
+template<int32_t d>
 FASTMOD_API int32_t fastdiv(int32_t x) {
     FASTMOD_API uint64_t v = computeM_s32(d);
     return fastdiv_s32(x, v, d);
