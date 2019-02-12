@@ -53,3 +53,7 @@ fastmod_s32(a,M,positive_d) is a % d for all 32-bit a
 ```
 
 In C++, it is much the same except that every function is in the `fastmod` namespace so you need to prefix the calls with `fastmod::` (e.g., `fastmod::is_divisible`).
+
+## Go version
+
+* There is a Go version of this library: https://github.com/bmkessler/fastdiv
