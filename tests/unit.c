@@ -4,6 +4,9 @@
 #include <stdlib.h>
 
 #include "fastmod.h"
+#ifdef __cplusplus
+using namespace fastmod;
+#endif
 
 bool testunsigned(uint32_t min, uint32_t max, bool verbose) {
   for (uint32_t d = min; (d <= max) && (d >= min); d++) {

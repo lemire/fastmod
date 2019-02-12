@@ -120,27 +120,26 @@ FASTMOD_API int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
 #endif // #ifndef _MSC_VER
 
 #ifdef __cplusplus
-struct __uint256_t {
-    __uint128_t hi, lo;
-};
-struct __int256_t {
-    __uint128_t hi;
-    __int128_t lo;
-};
 
-FASTMOD_API uint64_t mul256_u32(uint64_t lowbits, uint32_t d) {
-  return ((uint256_t)lowbits * d) >> 64;
+template<uint32_t d>
+FASTMOD_API uint32_t fastmod(uint32_t x) {
+    FASTMOD_API uint64_t v = computeM_u32(d);
+    return fastmod_u32(x, v, d);
 }
-
-FASTMOD_API uint64_t mul256_s32(uint64_t lowbits, int32_t d) {
-  return ((__int256_t)lowbits * d) >> 64;
+template<uint32_t d>
+FASTMOD_API uint32_t fastdiv(uint32_t x) {
+    FASTMOD_API uint64_t v = computeM_u32(d);
+    return fastdiv_u32(x, v);
 }
-
-FASTMOD_API __uint128_t computeM_u64(uint64_t d) {
-    return __uint128_t(-1) / d + 1;
+template<int32_t d>
+FASTMOD_API int32_t fastmod(int32_t x) {
+    FASTMOD_API uint64_t v = computeM_s32(d);
+    return fastmod_s32(x, v, d);
 }
-FASTMOD_API __uint128_t computeM_s64(uint64_t d) {
-    return __uint128_t(-1) / d + 1 + ((d & (d - 1)) == 0 ? 1 : 0);
+template<uint32_t d>
+FASTMOD_API int32_t fastdiv(int32_t x) {
+    FASTMOD_API uint64_t v = computeM_s32(d);
+    return fastdiv_s32(x, v, d);
 }
 
 
