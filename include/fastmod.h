@@ -48,6 +48,15 @@ FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
   return ((__int128_t)lowbits * d) >> 64;
 }
 
+FASTMOD_API uint64_t mul128_u64(__uint128_t lowbits, uint64_t d) {
+  __uint128_t bottom_half = (lowbits & UINT64_C(0xFFFFFFFFFFFFFFFF)) * d; // Won't overflow
+  bottom_half >>= 64;  // Only need the top 64 bits, as we'll shift the lower half away;
+  __uint128_t top_half = (lowbits >> 64) * d;
+  __uint128_t both_halves = bottom_half + top_half; // Both halves are already shifted down by 64
+  both_halves >>= 64; // Get top half of both_halves
+  return (uint64_t)both_halves;
+}
+
 #endif // _MSC_VER
 
 /**
@@ -128,7 +137,7 @@ FASTMOD_API __uint128_t computeM_u64(uint64_t d) {
   return M;
 }
 
-FASTMOD_API __uint128_t computeM_s32(int64_t d) {
+FASTMOD_API __uint128_t computeM_s64(int64_t d) {
   if (d < 0)
     d = -d;
   __uint128_t M = UINT64_C(0xFFFFFFFFFFFFFFFF);
@@ -138,6 +147,11 @@ FASTMOD_API __uint128_t computeM_s32(int64_t d) {
   M += 1;
   M += ((d & (d - 1)) == 0 ? 1 : 0);
   return M;
+}
+
+FASTMOD_API uint64_t fastmod_u64(uint64_t a, __uint128_t M, uint64_t d) {
+  __uint128_t lowbits = M * a;
+  return (uint64_t)(mul128_u64(lowbits, d));
 }
 
 #ifdef __cplusplus

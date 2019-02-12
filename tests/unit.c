@@ -15,6 +15,7 @@ bool testunsigned(uint32_t min, uint32_t max, bool verbose) {
       continue;
     }
     uint64_t M = computeM_u32(d);
+    __uint128_t M64 = computeM_u64(d);
     uint32_t computedMod = 0;
     if (verbose)
       printf("d = %u (unsigned) ", d);
@@ -24,9 +25,18 @@ bool testunsigned(uint32_t min, uint32_t max, bool verbose) {
     for (uint64_t a64 = 0; a64 < UINT64_C(0x100000000); a64++) {
       uint32_t a = (uint32_t)a64;
       uint32_t computedFastMod = fastmod_u32(a, M, d);
+      uint64_t computedFastMod64 = fastmod_u64(a64, M64, d);
       if (computedMod != computedFastMod) {
         printf(
             "(bad unsigned fastmod) problem with divisor %u and dividend %u \n",
+            d, a);
+        printf("expected %u mod %u = %u \n", a, d, computedMod);
+        printf("got %u mod %u = %u \n", a, d, computedFastMod);
+        return false;
+      }
+      if (computedFastMod64 != computedFastMod) {
+        printf(
+            "(bad unsigned 64-bit fastmod) problem with divisor %u and dividend %u \n",
             d, a);
         printf("expected %u mod %u = %u \n", a, d, computedMod);
         printf("got %u mod %u = %u \n", a, d, computedFastMod);
