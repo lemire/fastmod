@@ -154,6 +154,10 @@ FASTMOD_API uint64_t fastmod_u64(uint64_t a, __uint128_t M, uint64_t d) {
   return mul128_u64(lowbits, d);
 }
 
+FASTMOD_API uint64_t fastdiv_u64(uint64_t a, __uint128_t M) {
+  return mul128_u64(M, a);
+}
+
 #ifdef __cplusplus
 
 template<uint32_t d>
