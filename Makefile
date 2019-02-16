@@ -16,5 +16,6 @@ unit: ./tests/unit.c $(HEADERS)
 	$(CC) $(CFLAGS) -o unit ./tests/unit.c -Iinclude
 %: ./tests/%.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) -o $@ $< -Iinclude
+benchmark: modnbenchmark moddivnbenchmark
 clean:
-	rm -f  unit
+	rm -f  unit modnbenchmark moddivnbenchmark
