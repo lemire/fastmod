@@ -58,7 +58,7 @@ In C++, it is much the same except that every function is in the `fastmod` names
 ### 64-bit benchmark
 
 For comparisons to native `%` and `/` operations, as well as bitmasks, we've provided a benchmark with 64-bit div/mod. You can compile these benchmarks with `make benchmark`.
-These require C++11. Example output:
+These require C++11. It is not currently supported under Visual Studio. Example output:
 
 ```
 $ make benchmark
