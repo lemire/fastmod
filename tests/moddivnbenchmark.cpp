@@ -1,4 +1,4 @@
-#include "include/fastmod.h"
+#include "fastmod.h"
 #include <cstdio>
 #include <chrono>
 #include <random>

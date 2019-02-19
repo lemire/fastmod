@@ -48,6 +48,7 @@ FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
   return ((__int128_t)lowbits * d) >> 64;
 }
 
+// This is for the 64-bit functions.
 FASTMOD_API uint64_t mul128_u64(__uint128_t lowbits, uint64_t d) {
   __uint128_t bottom_half = (lowbits & UINT64_C(0xFFFFFFFFFFFFFFFF)) * d; // Won't overflow
   bottom_half >>= 64;  // Only need the top 64 bits, as we'll shift the lower half away;
@@ -126,7 +127,12 @@ FASTMOD_API int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
     return -(int32_t)(highbits);
   return (int32_t)(highbits);
 }
-#endif // #ifndef _MSC_VER
+
+// What follows is the 64-bit functions.
+// They are currently not supported on Visual Studio
+// due to the lack of a mul128_u64 function.
+// They may not be faster than what the compiler
+// can produce.
 
 FASTMOD_API __uint128_t computeM_u64(uint64_t d) {
   __uint128_t M = UINT64_C(0xFFFFFFFFFFFFFFFF);
@@ -158,6 +164,10 @@ FASTMOD_API uint64_t fastdiv_u64(uint64_t a, __uint128_t M) {
   return mul128_u64(M, a);
 }
 
+// End of the 64-bit functions
+
+#endif // #ifndef _MSC_VER
+
 #ifdef __cplusplus
 
 template<uint32_t d>
@@ -185,6 +195,7 @@ FASTMOD_API int32_t fastdiv(int32_t x) {
 } // fastmod
 }
 #endif
+
 
 // There's no reason to polute the global scope with this macro once its use ends
 // This won't create any problems as the preprocessor will have done its thing once
