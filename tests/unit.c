@@ -2,9 +2,46 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
+#include <string.h>
 
 #include "fastmod.h"
+#ifdef __cplusplus
+using namespace fastmod;
+#endif
 
+bool testunsigned64(uint64_t min, uint64_t max, bool verbose) {
+  for (uint64_t d = min; (d <= max) && (d >= min); d++) {
+    if (d == 0) {
+      printf("skipping d = 0\n");
+      continue;
+    }
+    __uint128_t M64 = computeM_u64(d);
+    if (verbose)
+      printf("d = %" PRIu64 " (unsigned 64-bit) ", d);
+    else
+      printf(".");
+    fflush(NULL);
+    for(uint64_t a64 = UINT64_C(0x10000000000000) /* 1 << 52 */; a64 < UINT64_C(0x10000000000000) + UINT64_C(0x10000); ++a64) {
+      uint64_t computedFastMod = fastmod_u64(a64, M64, d);
+      uint64_t computedMod = a64 % d;
+      if (computedMod != computedFastMod) {
+        printf(
+            "(bad u64 fastmod) problem with divisor %" PRIu64 " and dividend %" PRIu64 " \n",
+            d, a64);
+        printf("expected %" PRIu64 " mod %" PRIu64 " = %" PRIu64 " \n", a64, d, computedMod);
+        printf("got %" PRIu64 " mod %" PRIu64 " = %" PRIu64 " \n", a64, d, computedFastMod);
+        return false;
+      }
+    }
+    if (verbose)
+      printf("ok!\n");
+  }
+  if (verbose)
+    printf("Unsigned 64-bit fastmod test passed with divisors in interval [%" PRIu64 ", %" PRIu64 "].\n",
+           min, max);
+  return true;
+}
 bool testunsigned(uint32_t min, uint32_t max, bool verbose) {
   for (uint32_t d = min; (d <= max) && (d >= min); d++) {
     if (d == 0) {
@@ -177,10 +214,20 @@ bool testdivsigned(int32_t min, int32_t max, bool verbose) {
   return true;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
   bool isok = true;
   bool verbose = false;
+  for(int i = 0; i < argc; ++i) {
+    if(strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--verbose") == 0) {
+        verbose = true; break;
+    }
+  }
 
+  isok = isok && testunsigned64(1, 0x10, verbose);
+  isok = isok && testunsigned64(0x000133F, 0xFFFF, verbose);
+  isok = isok && testunsigned64(UINT64_C(0xffffffffff00000), UINT64_C(0xffffffffff00000) + 0x100, verbose);
+  isok = isok && testunsigned(1, 8, verbose);
+  isok = isok && testunsigned(0xfffffff8, 0xffffffff, verbose);
   isok = isok && testdivsigned(-0x80000000, -0x7ffffff8, verbose);
   isok = isok && testdivsigned(2, 10, verbose);
   isok = isok && testdivsigned(0x7ffffff8, 0x7fffffff, verbose);
@@ -193,8 +240,6 @@ int main() {
   isok = isok && testsigned(1, 8, verbose);
   isok = isok && testsigned(0x7ffffff8, 0x7fffffff, verbose);
   isok = isok && testsigned(-0x80000000, -0x7ffffff8, verbose);
-  isok = isok && testunsigned(1, 8, verbose);
-  isok = isok && testunsigned(0xfffffff8, 0xffffffff, verbose);
   for (int k = 0; k < 100; k++) {
     int32_t x = rand();
     isok = isok && testsigned(x, x, verbose);

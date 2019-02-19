@@ -54,6 +54,28 @@ fastmod_s32(a,M,positive_d) is a % d for all 32-bit a
 
 In C++, it is much the same except that every function is in the `fastmod` namespace so you need to prefix the calls with `fastmod::` (e.g., `fastmod::is_divisible`).
 
+
+### 64-bit benchmark
+
+For comparisons to native `%` and `/` operations, as well as bitmasks, we've provided a benchmark with 64-bit div/mod. You can compile these benchmarks with `make benchmark`.
+These require C++11. Example output:
+
+```
+$ make benchmark
+g++-8 -fPIC  -std=c++11 -O3 -march=native -Wall -Wextra -Wshadow -o modnbenchmark tests/modnbenchmark.cpp -Iinclude
+g++-8 -fPIC  -std=c++11 -O3 -march=native -Wall -Wextra -Wshadow -o moddivnbenchmark tests/moddivnbenchmark.cpp -Iinclude
+$ ./modnbenchmark && ./moddivnbenchmark 
+Time: 176997000
+Time: 819993000
+Time: 80945000
+masking is 2.186633 as fast as fastmod and 10.130249 as fast as modding
+Time: 32193000
+Time: 81158000
+fastmod + fastdiv is 2.520983 as fast as x86 mod + div: 
+```
+
+
 ## Go version
 
 * There is a Go version of this library: https://github.com/bmkessler/fastdiv
+

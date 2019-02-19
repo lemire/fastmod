@@ -14,7 +14,12 @@
 #else
 // In C++ we achieve the effects of the above through putting everything in an
 // unnamed namespace
+// Instead, we mark it constexpr so it can be used at compile-time if C++14 relaxed constexpr is supported.
+#if __cpp_constexpr >= 201304
+#define FASTMOD_API constexpr
+#else
 #define FASTMOD_API
+#endif
 #endif
 
 #ifdef _MSC_VER
@@ -41,6 +46,15 @@ FASTMOD_API uint64_t mul128_u32(uint64_t lowbits, uint32_t d) {
 
 FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
   return ((__int128_t)lowbits * d) >> 64;
+}
+
+FASTMOD_API uint64_t mul128_u64(__uint128_t lowbits, uint64_t d) {
+  __uint128_t bottom_half = (lowbits & UINT64_C(0xFFFFFFFFFFFFFFFF)) * d; // Won't overflow
+  bottom_half >>= 64;  // Only need the top 64 bits, as we'll shift the lower half away;
+  __uint128_t top_half = (lowbits >> 64) * d;
+  __uint128_t both_halves = bottom_half + top_half; // Both halves are already shifted down by 64
+  both_halves >>= 64; // Get top half of both_halves
+  return (uint64_t)both_halves;
 }
 
 #endif // _MSC_VER
@@ -114,7 +128,60 @@ FASTMOD_API int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
 }
 #endif // #ifndef _MSC_VER
 
+FASTMOD_API __uint128_t computeM_u64(uint64_t d) {
+  __uint128_t M = UINT64_C(0xFFFFFFFFFFFFFFFF);
+  M <<= 64;
+  M |= UINT64_C(0xFFFFFFFFFFFFFFFF);
+  M /= d;
+  M += 1;
+  return M;
+}
+
+FASTMOD_API __uint128_t computeM_s64(int64_t d) {
+  if (d < 0)
+    d = -d;
+  __uint128_t M = UINT64_C(0xFFFFFFFFFFFFFFFF);
+  M <<= 64;
+  M |= UINT64_C(0xFFFFFFFFFFFFFFFF);
+  M /= d;
+  M += 1;
+  M += ((d & (d - 1)) == 0 ? 1 : 0);
+  return M;
+}
+
+FASTMOD_API uint64_t fastmod_u64(uint64_t a, __uint128_t M, uint64_t d) {
+  __uint128_t lowbits = M * a;
+  return mul128_u64(lowbits, d);
+}
+
+FASTMOD_API uint64_t fastdiv_u64(uint64_t a, __uint128_t M) {
+  return mul128_u64(M, a);
+}
+
 #ifdef __cplusplus
+
+template<uint32_t d>
+FASTMOD_API uint32_t fastmod(uint32_t x) {
+    constexpr uint64_t v = computeM_u32(d);
+    return fastmod_u32(x, v, d);
+}
+template<uint32_t d>
+FASTMOD_API uint32_t fastdiv(uint32_t x) {
+    constexpr uint64_t v = computeM_u32(d);
+    return fastdiv_u32(x, v);
+}
+template<int32_t d>
+FASTMOD_API int32_t fastmod(int32_t x) {
+    constexpr uint64_t v = computeM_s32(d);
+    return fastmod_s32(x, v, d);
+}
+template<int32_t d>
+FASTMOD_API int32_t fastdiv(int32_t x) {
+    constexpr uint64_t v = computeM_s32(d);
+    return fastdiv_s32(x, v, d);
+}
+
+
 } // fastmod
 }
 #endif
