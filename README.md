@@ -39,12 +39,12 @@ In C, you can use the header as follows.
 uint32_t d = ... ; // divisor, should be non-zero
 uint64_t M = computeM_u32(d); // do once
 
-fastmod_u32(a,M,d) is a % d for all 32-bit unsigned values a.
+fastmod_u32(a,M,d);// is a % d for all 32-bit unsigned values a.
 
-fastdiv_u32(a,M) is a / d for all 32-bit unsigned values a.
+fastdiv_u32(a,M);// is a / d for all 32-bit unsigned values a.
 
 
-is_divisible(a,M) tells you if a is divisible by d
+is_divisible(a,M);// tells you if a is divisible by d
 
 // signed...
 
@@ -52,9 +52,9 @@ int32_t d = ... ; // should be non-zero and between [-2147483647,2147483647]
 int32_t positive_d = d < 0 ? -d : d; // absolute value
 uint64_t M = computeM_s32(d); // do once
 
-fastmod_s32(a,M,positive_d) is a % d for all 32-bit a
+fastmod_s32(a,M,positive_d);// is a % d for all 32-bit a
 
-fastdiv_s32(a,M,d) is a / d for all 32-bit a
+fastdiv_s32(a,M,d);// is a / d for all 32-bit a
 
 ```
 
