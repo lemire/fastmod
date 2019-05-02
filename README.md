@@ -11,7 +11,7 @@ Compilers cleverly replace divisions by multiplications and shifts, if the divis
 
 Further reading:
 
-- [Faster Remainder by Direct Computation: Applications to Compilers and Software Libraries](https://arxiv.org/abs/1902.01961), Software: Practice and Experience (to appear)
+- [Faster Remainder by Direct Computation: Applications to Compilers and Software Libraries](https://arxiv.org/abs/1902.01961), Software: Practice and Experience  49 (6), 2019.
 
 
 ##  Usage
