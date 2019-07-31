@@ -16,6 +16,7 @@
 // unnamed namespace
 // Instead, we mark it constexpr so it can be used at compile-time if C++14 relaxed constexpr is supported.
 #if __cpp_constexpr >= 201304
+fdsfsd
 #define FASTMOD_API constexpr
 #else
 #define FASTMOD_API
@@ -172,22 +173,22 @@ FASTMOD_API uint64_t fastdiv_u64(uint64_t a, __uint128_t M) {
 
 template<uint32_t d>
 FASTMOD_API uint32_t fastmod(uint32_t x) {
-    constexpr uint64_t v = computeM_u32(d);
+    FASTMOD_API uint64_t v = computeM_u32(d);
     return fastmod_u32(x, v, d);
 }
 template<uint32_t d>
 FASTMOD_API uint32_t fastdiv(uint32_t x) {
-    constexpr uint64_t v = computeM_u32(d);
+    FASTMOD_API uint64_t v = computeM_u32(d);
     return fastdiv_u32(x, v);
 }
 template<int32_t d>
 FASTMOD_API int32_t fastmod(int32_t x) {
-    constexpr uint64_t v = computeM_s32(d);
+    FASTMOD_API uint64_t v = computeM_s32(d);
     return fastmod_s32(x, v, d);
 }
 template<int32_t d>
 FASTMOD_API int32_t fastdiv(int32_t x) {
-    constexpr uint64_t v = computeM_s32(d);
+    FASTMOD_API uint64_t v = computeM_s32(d);
     return fastdiv_s32(x, v, d);
 }
 
