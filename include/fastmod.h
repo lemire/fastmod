@@ -136,6 +136,7 @@ FASTMOD_API int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
 // can produce.
 
 FASTMOD_API __uint128_t computeM_u64(uint64_t d) {
+  // what follows is just ((__uint128_t)0 - 1) / d) + 1 spelled out
   __uint128_t M = UINT64_C(0xFFFFFFFFFFFFFFFF);
   M <<= 64;
   M |= UINT64_C(0xFFFFFFFFFFFFFFFF);
