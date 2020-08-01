@@ -1,5 +1,7 @@
 # fastmod
 [![Build Status](https://travis-ci.org/lemire/fastmod.svg?branch=master)](https://travis-ci.org/lemire/fastmod)
+[![Build Status](https://cloud.drone.io/api/badges/lemire/fastmod/status.svg)](https://cloud.drone.io/lemire/fastmod)
+[![Code Quality: Cpp](https://img.shields.io/lgtm/grade/cpp/g/lemire/fastmod.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/lemire/fastmod/context:cpp)
 
 A header file for fast 32-bit division remainders  on 64-bit hardware.
 
@@ -11,7 +13,7 @@ Compilers cleverly replace divisions by multiplications and shifts, if the divis
 
 Further reading:
 
-- [Faster Remainder by Direct Computation: Applications to Compilers and Software Libraries](https://arxiv.org/abs/1902.01961), Software: Practice and Experience (to appear)
+- [Faster Remainder by Direct Computation: Applications to Compilers and Software Libraries](https://arxiv.org/abs/1902.01961), Software: Practice and Experience  49 (6), 2019.
 
 
 ##  Usage
@@ -39,9 +41,12 @@ In C, you can use the header as follows.
 uint32_t d = ... ; // divisor, should be non-zero
 uint64_t M = computeM_u32(d); // do once
 
-fastmod_u32(a,M,d) is a % d for all 32-bit unsigned values a.
+fastmod_u32(a,M,d);// is a % d for all 32-bit unsigned values a.
 
-is_divisible(a,M) tells you if a is divisible by d
+fastdiv_u32(a,M);// is a / d for all 32-bit unsigned values a.
+
+
+is_divisible(a,M);// tells you if a is divisible by d
 
 // signed...
 
@@ -49,7 +54,10 @@ int32_t d = ... ; // should be non-zero and between [-2147483647,2147483647]
 int32_t positive_d = d < 0 ? -d : d; // absolute value
 uint64_t M = computeM_s32(d); // do once
 
-fastmod_s32(a,M,positive_d) is a % d for all 32-bit a
+fastmod_s32(a,M,positive_d);// is a % d for all 32-bit a
+
+fastdiv_s32(a,M,d);// is a / d for all 32-bit a
+
 ```
 
 In C++, it is much the same except that every function is in the `fastmod` namespace so you need to prefix the calls with `fastmod::` (e.g., `fastmod::is_divisible`).

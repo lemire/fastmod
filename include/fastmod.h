@@ -12,13 +12,16 @@
 #ifndef __cplusplus
 #define FASTMOD_API static inline
 #else
-// In C++ we achieve the effects of the above through putting everything in an
-// unnamed namespace
-// Instead, we mark it constexpr so it can be used at compile-time if C++14 relaxed constexpr is supported.
+// In C++ we mark all the functions inline.
+// If C++14 relaxed constexpr is supported we use constexpr so functions
+// can be used at compile-time.
 #if __cpp_constexpr >= 201304 && !defined(_MSC_VER)
+// visual studio does not like constexpr
 #define FASTMOD_API constexpr
+#define FASTMOD_CONSTEXPR constexpr
 #else
-#define FASTMOD_API
+#define FASTMOD_API inline
+#define FASTMOD_CONSTEXPR
 #endif
 #endif
 
@@ -27,7 +30,6 @@
 #endif
 
 #ifdef __cplusplus
-namespace {
 namespace fastmod {
 #endif
 
@@ -135,6 +137,7 @@ FASTMOD_API int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
 // can produce.
 
 FASTMOD_API __uint128_t computeM_u64(uint64_t d) {
+  // what follows is just ((__uint128_t)0 - 1) / d) + 1 spelled out
   __uint128_t M = UINT64_C(0xFFFFFFFFFFFFFFFF);
   M <<= 64;
   M |= UINT64_C(0xFFFFFFFFFFFFFFFF);
@@ -172,28 +175,26 @@ FASTMOD_API uint64_t fastdiv_u64(uint64_t a, __uint128_t M) {
 
 template<uint32_t d>
 FASTMOD_API uint32_t fastmod(uint32_t x) {
-    constexpr uint64_t v = computeM_u32(d);
+    FASTMOD_CONSTEXPR uint64_t v = computeM_u32(d);
     return fastmod_u32(x, v, d);
 }
 template<uint32_t d>
 FASTMOD_API uint32_t fastdiv(uint32_t x) {
-    constexpr uint64_t v = computeM_u32(d);
+    FASTMOD_CONSTEXPR uint64_t v = computeM_u32(d);
     return fastdiv_u32(x, v);
 }
 template<int32_t d>
 FASTMOD_API int32_t fastmod(int32_t x) {
-    constexpr uint64_t v = computeM_s32(d);
+    FASTMOD_CONSTEXPR uint64_t v = computeM_s32(d);
     return fastmod_s32(x, v, d);
 }
 template<int32_t d>
 FASTMOD_API int32_t fastdiv(int32_t x) {
-    constexpr uint64_t v = computeM_s32(d);
+    FASTMOD_CONSTEXPR uint64_t v = computeM_s32(d);
     return fastdiv_s32(x, v, d);
 }
 
-
 } // fastmod
-}
 #endif
 
 
@@ -201,5 +202,6 @@ FASTMOD_API int32_t fastdiv(int32_t x) {
 // This won't create any problems as the preprocessor will have done its thing once
 // it reaches this point
 #undef FASTMOD_API
+#undef FASTMOD_CONSTEXPR
 
 #endif // FASTMOD_H
