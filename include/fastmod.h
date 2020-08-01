@@ -15,7 +15,7 @@
 // In C++ we achieve the effects of the above through putting everything in an
 // unnamed namespace
 // Instead, we mark it constexpr so it can be used at compile-time if C++14 relaxed constexpr is supported.
-#if __cpp_constexpr >= 201304
+#if __cpp_constexpr >= 201304 && !defined(_MSC_VER)
 #define FASTMOD_API constexpr
 #else
 #define FASTMOD_API
