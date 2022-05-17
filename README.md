@@ -55,7 +55,7 @@ uint64_t M = computeM_s32(d); // do once
 
 fastmod_s32(a,M,positive_d);// is a % d for all 32-bit a
 
-fastdiv_s32(a,M,d);// is a / d for all 32-bit a
+fastdiv_s32(a,M,d);// is a / d for all 32-bit a,  d must not be one of -1, 1, or -2147483648
 
 ```
 
