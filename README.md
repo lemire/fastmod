@@ -42,7 +42,7 @@ uint64_t M = computeM_u32(d); // do once
 
 fastmod_u32(a,M,d);// is a % d for all 32-bit unsigned values a.
 
-fastdiv_u32(a,M);// is a / d for all 32-bit unsigned values a.
+fastdiv_u32(a,M);// is a / d for all 32-bit unsigned values a, d>1.
 
 
 is_divisible(a,M);// tells you if a is divisible by d
