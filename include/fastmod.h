@@ -115,7 +115,7 @@ FASTMOD_API uint64_t computeM_s32(int32_t d) {
 // you should pass the absolute value of d
 FASTMOD_API int32_t fastmod_s32(int32_t a, uint64_t M, int32_t positive_d) {
   uint64_t lowbits = M * a;
-  int32_t highbits = mul128_u32(lowbits, positive_d);
+  int32_t highbits = (int32_t)mul128_u32(lowbits, positive_d);
   return highbits - ((positive_d - 1) & (a >> 31));
 }
 
