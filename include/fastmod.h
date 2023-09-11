@@ -83,12 +83,12 @@ FASTMOD_API uint32_t fastmod_u32(uint32_t a, uint64_t M, uint32_t d) {
   return (uint32_t)(mul128_u32(lowbits, d));
 }
 
-// fastmod computes (a / d) given precomputed M for d>1
+// fastdiv computes (a / d) given precomputed M for d>1
 FASTMOD_API uint32_t fastdiv_u32(uint32_t a, uint64_t M) {
   return (uint32_t)(mul128_u32(M, a));
 }
 
-// given precomputed M, checks whether n % d == 0
+// given precomputed M, is_divisible checks whether n % d == 0
 FASTMOD_API bool is_divisible(uint32_t n, uint64_t M) {
   return n * M <= M - 1;
 }
@@ -120,7 +120,7 @@ FASTMOD_API int32_t fastmod_s32(int32_t a, uint64_t M, int32_t positive_d) {
 }
 
 #ifndef _MSC_VER
-// fastmod computes (a / d) given precomputed M, assumes that d must not
+// fastdiv computes (a / d) given a precomputed M, assumes that d must not
 // be one of -1, 1, or -2147483648
 FASTMOD_API int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
   uint64_t highbits = mul128_s32(M, a);
