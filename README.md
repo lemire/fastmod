@@ -26,6 +26,8 @@ make
 
 The tests are exhaustive and take some time.
 
+You can also build the tests using cmake.
+
 ##  Code samples
 
 In C, you can use the header as follows.
