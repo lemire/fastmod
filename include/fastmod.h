@@ -39,9 +39,14 @@ namespace fastmod {
 FASTMOD_API uint64_t mul128_u32(uint64_t lowbits, uint32_t d) {
   return __umulh(lowbits, d);
 }
+FASTMOD_API uint64_t mul128_from_u64(uint64_t lowbits, uint64_t d) {
+  return __umulh(lowbits, d);
+}
 FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
-  // not equivalent to ((__int128_t)lowbits * d) >> 64
-  return __mulh(lowbits, d);
+  if(d < 0) {
+    return mul128_from_u64(lowbits, (int64_t)d) - lowbits;
+  }
+  return mul128_u32(lowbits, d);
 }
 
 
@@ -50,9 +55,14 @@ FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
 FASTMOD_API uint64_t mul128_u32(uint64_t lowbits, uint32_t d) {
   return ((__uint128_t)lowbits * d) >> 64;
 }
-
+FASTMOD_API uint64_t mul128_from_u64(uint64_t lowbits, uint64_t d) {
+  return ((__uint128_t)lowbits * d) >> 64;
+}
 FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
-  return ((__int128_t)lowbits * d) >> 64;
+  if(d < 0) {
+    return mul128_from_u64(lowbits, (int64_t)d) - lowbits;
+  }
+  return mul128_u32(lowbits, d);
 }
 
 // This is for the 64-bit functions.
@@ -124,11 +134,8 @@ FASTMOD_API int32_t fastmod_s32(int32_t a, uint64_t M, int32_t positive_d) {
   return highbits - ((positive_d - 1) & (a >> 31));
 }
 
-#ifndef _MSC_VER
-
 // fastdiv computes (a / d) given a precomputed M, assumes that d must not
 // be one of -1, 1, or -2147483648
-// Unsupported under VS, todo: fix.
 FASTMOD_API int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
   uint64_t highbits = mul128_s32(M, a);
   highbits += (a < 0 ? 1 : 0);
@@ -136,6 +143,8 @@ FASTMOD_API int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
     return -(int32_t)(highbits);
   return (int32_t)(highbits);
 }
+
+#ifndef _MSC_VER
 
 // What follows is the 64-bit functions.
 // They are currently not supported on Visual Studio
