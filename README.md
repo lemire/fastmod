@@ -17,7 +17,7 @@ Further reading:
 
 ##  Usage
 
-We support all major compilers (LLVM's clang, GNU GCC, Visual Studio). Users of Visual Studio need to compile to a 64-bit binary, typically by selecting x64 in the build settings.
+We support all major compilers (LLVM's clang, GNU GCC, Visual Studio). 
 
 It is a header-only library but we have unit tests. Assuming a Linux/macOS setting:
 
@@ -47,6 +47,8 @@ cmake --build build --config Release
 cd build
 ctest . --config Release
 ```
+
+Users of Visual Studio need to compile to a 64-bit binary, typically by selecting x64 or ARM64 in the build settings. Visual Studio should default on 64-bit builds on 64-bit systems.
 
 
 ##  Code samples
