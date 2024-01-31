@@ -27,7 +27,18 @@ make
 
 The tests are exhaustive and take some time.
 
-You can also build the tests using cmake.
+You can also build the tests using cmake which will work nearly everywhere (including under Windows).
+
+```
+cmake -B build 
+```
+
+To enable the exhaustive tests, do...
+
+```
+cmake -B build -D FASTMOD_EXHAUSTIVE_TESTS=ON
+```
+
 
 ##  Code samples
 
