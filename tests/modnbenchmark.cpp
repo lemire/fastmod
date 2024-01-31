@@ -30,6 +30,7 @@ int main() {
     uint64_t constantmod = 34124121;
     std::vector<uint64_t> zomg(100000000);
     for(auto &e: zomg) e = mt();
+#ifndef _MSC_VER
     const auto M = computeM_u64(mod);
     std::cout << "timing fastmod_u64 " << std::endl;
     auto fmtime = time([M,mod](uint64_t v) {return fastmod_u64(v, M, mod);}, zomg);
@@ -51,4 +52,5 @@ int main() {
     std::cout << "timing x & t; " << std::endl;
     auto masktime = time([t](uint64_t x) {return x & t;}, zomg);
     std::fprintf(stderr, "masking is %lf as fast as fastmod and %lf as fast as modding\n", (double)fmtime / masktime, (double)modtime / masktime);
+#endif
 }

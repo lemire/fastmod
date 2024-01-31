@@ -27,8 +27,10 @@ int main() {
     size_t mod = mt() % (1 << 27);
     std::vector<uint64_t> zomg(10000000);
     for(auto &e: zomg) e = mt();
+#ifndef _MSC_VER
     const auto M = computeM_u64(mod);
     auto fm = time([M,mod](uint64_t v) {return fastmod_u64(v, M, mod) + fastdiv_u64(v, M);}, zomg);
     auto sm = time([mod](uint64_t x) {return (x % mod) + (x / mod);}, zomg);
     std::fprintf(stderr, "fastmod + fastdiv is %lf as fast as x86 mod + div: \n", (double)sm / fm);
+#endif
 }
