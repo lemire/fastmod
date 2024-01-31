@@ -83,7 +83,7 @@ fastdiv_s32(a,M,d);// is a / d for all 32-bit a,  d must not be one of -1, 1, or
 In C++, it is much the same except that every function is in the `fastmod` namespace so you need to prefix the calls with `fastmod::` (e.g., `fastmod::is_divisible`).
 
 
-
+The signed operations (`fastmod_s32` and `fastdiv_s32`) are currently unsupported under Visual Studio.
 
 ## Go version
 
