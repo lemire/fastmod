@@ -39,7 +39,7 @@ namespace fastmod {
 FASTMOD_API uint64_t mul128_u32(uint64_t lowbits, uint32_t d) {
   return __umulh(lowbits, d);
 }
-FASTMOD_API uint64_t mul128_u32(uint64_t lowbits, int32_t d) {
+FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
   return __mulh(lowbits, d);
 }
 
