@@ -123,8 +123,11 @@ FASTMOD_API int32_t fastmod_s32(int32_t a, uint64_t M, int32_t positive_d) {
   return highbits - ((positive_d - 1) & (a >> 31));
 }
 
+#ifndef _MSC_VER
+
 // fastdiv computes (a / d) given a precomputed M, assumes that d must not
 // be one of -1, 1, or -2147483648
+// Unsupported under VS, todo: fix.
 FASTMOD_API int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
   uint64_t highbits = mul128_s32(M, a);
   highbits += (a < 0 ? 1 : 0);
@@ -133,7 +136,6 @@ FASTMOD_API int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
   return (int32_t)(highbits);
 }
 
-#ifndef _MSC_VER
 // What follows is the 64-bit functions.
 // They are currently not supported on Visual Studio
 // due to the lack of a mul128_u64 function.
