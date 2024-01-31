@@ -40,6 +40,7 @@ FASTMOD_API uint64_t mul128_u32(uint64_t lowbits, uint32_t d) {
   return __umulh(lowbits, d);
 }
 FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
+  // not equivalent to ((__int128_t)lowbits * d) >> 64
   return __mulh(lowbits, d);
 }
 
