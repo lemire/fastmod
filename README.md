@@ -1,6 +1,4 @@
 # fastmod
-[![Build Status](https://travis-ci.org/lemire/fastmod.svg?branch=master)](https://travis-ci.org/lemire/fastmod)
-[![Build Status](https://cloud.drone.io/api/badges/lemire/fastmod/status.svg)](https://cloud.drone.io/lemire/fastmod)
 
 A header file for fast 32-bit division remainders  on 64-bit hardware.
 
