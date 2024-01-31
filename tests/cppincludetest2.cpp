@@ -167,7 +167,6 @@ bool testdivsigned(int32_t min, int32_t max, bool verbose) {
     for (int64_t a64 = -INT64_C(0x80000000); a64 < INT64_C(0x80000000); a64++) {
       int32_t a = (int32_t)a64;
       int32_t computedDiv = a / d;
-#ifndef _MSC_VER
       int32_t computedFastDiv = fastdiv_s32(a, M, d);
       if (computedDiv != computedFastDiv) {
         printf(
@@ -177,7 +176,6 @@ bool testdivsigned(int32_t min, int32_t max, bool verbose) {
         printf("got %d div %d = %d \n", a, d, computedFastDiv);
         return false;
       }
-#endif
     }
     if (verbose)
       printf("ok!\n");
