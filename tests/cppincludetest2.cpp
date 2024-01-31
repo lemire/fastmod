@@ -15,6 +15,8 @@ bool testunsigned64(uint64_t min, uint64_t max, bool verbose);
 
 
 bool testunsigned(uint32_t min, uint32_t max, bool verbose) {
+  printf("Testing testunsigned with min = %d and max = %d\n", min, max);
+  size_t count = 0;
   for (uint32_t d = min; (d <= max) && (d >= min); d++) {
     if (d == 0) {
       printf("skipping d = 0\n");
@@ -24,8 +26,12 @@ bool testunsigned(uint32_t min, uint32_t max, bool verbose) {
     uint32_t computedMod = 0;
     if (verbose)
       printf("d = %u (unsigned) ", d);
-    else
-      printf(".");
+    else {
+      count++;
+      if(count % 10000 == 0) {
+        printf(".");
+      }
+    }
     fflush(NULL);
     for (uint64_t a64 = 0; a64 < UINT64_C(0x100000000); a64++) {
       uint32_t a = (uint32_t)a64;
@@ -57,6 +63,8 @@ bool testunsigned(uint32_t min, uint32_t max, bool verbose) {
 }
 
 bool testdivunsigned(uint32_t min, uint32_t max, bool verbose) {
+  printf("Testing testdivunsigned with min = %d and max = %d\n", min, max);
+  size_t count = 0;
   for (uint32_t d = min; (d <= max) && (d >= min); d++) {
     if (d == 0) {
       printf("skipping d = 0\n");
@@ -69,8 +77,12 @@ bool testdivunsigned(uint32_t min, uint32_t max, bool verbose) {
     uint64_t M = computeM_u32(d);
     if (verbose)
       printf("d = %u (unsigned) ", d);
-    else
-      printf(".");
+    else {
+      count++;
+      if(count % 10000 == 0) {
+        printf(".");
+      }
+    }
     fflush(NULL);
     for (uint64_t a64 = 0; a64 < UINT64_C(0x100000000); a64++) {
       uint32_t a = (uint32_t)a64;
@@ -96,6 +108,8 @@ bool testdivunsigned(uint32_t min, uint32_t max, bool verbose) {
 }
 
 bool testsigned(int32_t min, int32_t max, bool verbose) {
+  printf("Testing testsigned with min = %d and max = %d\n", min, max);
+  size_t count = 0;
   assert(min != max + 1); // infinite loop!
   for (int32_t d = min; (d <= max) && (d >= min); d++) {
     if (d == 0) {
@@ -109,8 +123,12 @@ bool testsigned(int32_t min, int32_t max, bool verbose) {
     uint64_t M = computeM_s32(d);
     if (verbose)
       printf("d = %d (signed) ", d);
-    else
-      printf(".");
+    else {
+      count++;
+      if(count % 10000 == 0) {
+        printf(".");
+      }
+    }
     fflush(NULL);
     int32_t positive_d = d < 0 ? -d : d;
     uint64_t absolute_min32 = -INT64_C(0x80000000);
@@ -139,7 +157,9 @@ bool testsigned(int32_t min, int32_t max, bool verbose) {
 }
 
 bool testdivsigned(int32_t min, int32_t max, bool verbose) {
+  printf("Testing divsigned with min = %d and max = %d\n", min, max);
   assert(min != max + 1); // infinite loop!
+  size_t count = 0;
   for (int32_t d = min; (d <= max) && (d >= min); d++) {
     if (d == 0) {
       printf("skipping d = 0\n");
@@ -161,8 +181,12 @@ bool testdivsigned(int32_t min, int32_t max, bool verbose) {
     uint64_t M = computeM_s32(d);
     if (verbose)
       printf("d = %d (signed) ", d);
-    else
-      printf(".");
+    else {
+      count++;
+      if(count % 10000 == 0) {
+        printf(".");
+      }
+    }
     fflush(NULL);
     for (int64_t a64 = -INT64_C(0x80000000); a64 < INT64_C(0x80000000); a64++) {
       int32_t a = (int32_t)a64;
@@ -201,15 +225,15 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  isok = isok && testdivsigned(-0x80000000, -0x7ffffff8, verbose);
+  isok = isok && testdivsigned(2, 10, verbose);
+  isok = isok && testdivsigned(0x7ffffff8, 0x7fffffff, verbose);
+  isok = isok && testdivsigned(-10, -2, verbose);
   isok = isok && testunsigned64(1, 0x10, verbose);
   isok = isok && testunsigned64(0x000133F, 0xFFFF, verbose);
   isok = isok && testunsigned64(UINT64_C(0xffffffffff00000), UINT64_C(0xffffffffff00000) + 0x100, verbose);
   isok = isok && testunsigned(1, 8, verbose);
   isok = isok && testunsigned(0xfffffff8, 0xffffffff, verbose);
-  isok = isok && testdivsigned(-0x80000000, -0x7ffffff8, verbose);
-  isok = isok && testdivsigned(2, 10, verbose);
-  isok = isok && testdivsigned(0x7ffffff8, 0x7fffffff, verbose);
-  isok = isok && testdivsigned(-10, -2, verbose);
 
   isok = isok && testdivunsigned(2, 10, verbose);
   isok = isok && testdivunsigned(0xfffffff8, 0xffffffff, verbose);
