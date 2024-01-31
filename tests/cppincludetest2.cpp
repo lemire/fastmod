@@ -152,7 +152,7 @@ bool testdivsigned(int32_t min, int32_t max, bool verbose) {
     if (d == -1) {
       printf("skipping d = -1 as it is not supported\n");
       continue;
-    }
+    } 
     if (d == -2147483648) {
       printf("skipping d = -2147483648 as it is unsupported\n");
       continue;
@@ -174,7 +174,11 @@ bool testdivsigned(int32_t min, int32_t max, bool verbose) {
             d, a);
         printf("expected %d div %d = %d \n", a, d, computedDiv);
         printf("got %d div %d = %d \n", a, d, computedFastDiv);
-        return false;
+        if(d == -2147483648) {
+          printf("Note: d = -2147483648 is unsupported\n");
+        } else {
+          return false;
+        }
       }
     }
     if (verbose)
