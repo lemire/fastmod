@@ -39,6 +39,14 @@ To enable the exhaustive tests, do...
 cmake -B build -D FASTMOD_EXHAUSTIVE_TESTS=ON
 ```
 
+Under Windows, you can run tests as follows:
+
+```
+cmake --build build --config Release
+cd build
+ctest . --config Release
+```
+
 
 ##  Code samples
 
