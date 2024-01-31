@@ -1,4 +1,5 @@
 # fastmod
+[![Ubuntu 22.04 CI (GCC 11)](https://github.com/lemire/fastmod/actions/workflows/ubuntu22.yml/badge.svg)](https://github.com/lemire/fastmod/actions/workflows/ubuntu22.yml)
 
 A header file for fast 32-bit division remainders  on 64-bit hardware.
 
