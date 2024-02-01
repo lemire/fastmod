@@ -35,7 +35,8 @@ namespace fastmod {
 
 #ifdef _MSC_VER
 
-// __umulh is only available in x64 mode under Visual Studio: don't compile to 32-bit!
+// __umulh is only available in x64 mode under Visual Studio: don't compile to
+// 32-bit!
 FASTMOD_API uint64_t mul128_u32(uint64_t lowbits, uint32_t d) {
   return __umulh(lowbits, d);
 }
@@ -43,12 +44,11 @@ FASTMOD_API uint64_t mul128_from_u64(uint64_t lowbits, uint64_t d) {
   return __umulh(lowbits, d);
 }
 FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
-  if(d < 0) {
+  if (d < 0) {
     return mul128_from_u64(lowbits, (int64_t)d) - lowbits;
   }
   return mul128_u32(lowbits, d);
 }
-
 
 #else // _MSC_VER NOT defined
 
@@ -59,7 +59,7 @@ FASTMOD_API uint64_t mul128_from_u64(uint64_t lowbits, uint64_t d) {
   return ((__uint128_t)lowbits * d) >> 64;
 }
 FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
-  if(d < 0) {
+  if (d < 0) {
     return mul128_from_u64(lowbits, (int64_t)d) - lowbits;
   }
   return mul128_u32(lowbits, d);
@@ -67,11 +67,14 @@ FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
 
 // This is for the 64-bit functions.
 FASTMOD_API uint64_t mul128_u64(__uint128_t lowbits, uint64_t d) {
-  __uint128_t bottom_half = (lowbits & UINT64_C(0xFFFFFFFFFFFFFFFF)) * d; // Won't overflow
-  bottom_half >>= 64;  // Only need the top 64 bits, as we'll shift the lower half away;
+  __uint128_t bottom_half =
+      (lowbits & UINT64_C(0xFFFFFFFFFFFFFFFF)) * d; // Won't overflow
+  bottom_half >>=
+      64; // Only need the top 64 bits, as we'll shift the lower half away;
   __uint128_t top_half = (lowbits >> 64) * d;
-  __uint128_t both_halves = bottom_half + top_half; // Both halves are already shifted down by 64
-  both_halves >>= 64; // Get top half of both_halves
+  __uint128_t both_halves =
+      bottom_half + top_half; // Both halves are already shifted down by 64
+  both_halves >>= 64;         // Get top half of both_halves
   return (uint64_t)both_halves;
 }
 
@@ -85,7 +88,6 @@ FASTMOD_API uint64_t mul128_u64(__uint128_t lowbits, uint64_t d) {
  *  fastmod_u32(a,M,d) is a % d for all 32-bit a.
  *
  **/
-
 
 // M = ceil( (1<<64) / d ), d > 0
 FASTMOD_API uint64_t computeM_u32(uint32_t d) {
@@ -104,9 +106,7 @@ FASTMOD_API uint32_t fastdiv_u32(uint32_t a, uint64_t M) {
 }
 
 // given precomputed M, is_divisible checks whether n % d == 0
-FASTMOD_API bool is_divisible(uint32_t n, uint64_t M) {
-  return n * M <= M - 1;
-}
+FASTMOD_API bool is_divisible(uint32_t n, uint64_t M) { return n * M <= M - 1; }
 
 /**
  * signed integers
@@ -189,34 +189,29 @@ FASTMOD_API uint64_t fastdiv_u64(uint64_t a, __uint128_t M) {
 
 #ifdef __cplusplus
 
-template<uint32_t d>
-FASTMOD_API uint32_t fastmod(uint32_t x) {
-    FASTMOD_CONSTEXPR uint64_t v = computeM_u32(d);
-    return fastmod_u32(x, v, d);
+template <uint32_t d> FASTMOD_API uint32_t fastmod(uint32_t x) {
+  FASTMOD_CONSTEXPR uint64_t v = computeM_u32(d);
+  return fastmod_u32(x, v, d);
 }
-template<uint32_t d>
-FASTMOD_API uint32_t fastdiv(uint32_t x) {
-    FASTMOD_CONSTEXPR uint64_t v = computeM_u32(d);
-    return fastdiv_u32(x, v);
+template <uint32_t d> FASTMOD_API uint32_t fastdiv(uint32_t x) {
+  FASTMOD_CONSTEXPR uint64_t v = computeM_u32(d);
+  return fastdiv_u32(x, v);
 }
-template<int32_t d>
-FASTMOD_API int32_t fastmod(int32_t x) {
-    FASTMOD_CONSTEXPR uint64_t v = computeM_s32(d);
-    return fastmod_s32(x, v, d);
+template <int32_t d> FASTMOD_API int32_t fastmod(int32_t x) {
+  FASTMOD_CONSTEXPR uint64_t v = computeM_s32(d);
+  return fastmod_s32(x, v, d);
 }
-template<int32_t d>
-FASTMOD_API int32_t fastdiv(int32_t x) {
-    FASTMOD_CONSTEXPR uint64_t v = computeM_s32(d);
-    return fastdiv_s32(x, v, d);
+template <int32_t d> FASTMOD_API int32_t fastdiv(int32_t x) {
+  FASTMOD_CONSTEXPR uint64_t v = computeM_s32(d);
+  return fastdiv_s32(x, v, d);
 }
 
 } // fastmod
 #endif
 
-
-// There's no reason to polute the global scope with this macro once its use ends
-// This won't create any problems as the preprocessor will have done its thing once
-// it reaches this point
+// There's no reason to polute the global scope with this macro once its use
+// ends This won't create any problems as the preprocessor will have done its
+// thing once it reaches this point
 #undef FASTMOD_API
 #undef FASTMOD_CONSTEXPR
 

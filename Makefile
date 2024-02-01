@@ -6,9 +6,8 @@ ifeq ($(DEBUG),1)
 CFLAGS = -fPIC  -std=c99 -ggdb  -Wall -Wshadow -fsanitize=undefined  -fno-omit-frame-pointer -fsanitize=address
 CXXFLAGS = -fPIC  -std=c++11 -ggdb  -Wall  -Wshadow -fsanitize=undefined  -fno-omit-frame-pointer -fsanitize=address
 else
-CFLAGS = -fPIC -std=c99 -O3   -Wall  -Wshadow
-CXXFLAGS = -fPIC  -O3  -Wall  -Wshadow
-
+CFLAGS = -fPIC -std=c99 -O3   -Wall -Wextra -Wshadow
+CXXFLAGS = -fPIC  -O3  -Wall  -Wextra -Wshadow
 endif # debug
 all: unit cppincludetest2 
 HEADERS=include/fastmod.h

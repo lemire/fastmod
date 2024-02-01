@@ -1,21 +1,18 @@
 #include <assert.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <inttypes.h>
 #include <string.h>
 
 #include "fastmod.h"
 
 using namespace fastmod;
 
-
 bool testunsigned64(uint64_t min, uint64_t max, bool verbose);
 
-
-
 bool testunsigned(uint32_t min, uint32_t max, bool verbose) {
-  printf("Testing testunsigned with min = %d and max = %d\n", min, max);
+  printf("\n==Testing testunsigned with min = %d and max = %d\n", min, max);
   size_t count = 0;
   for (uint32_t d = min; (d <= max) && (d >= min); d++) {
     if (d == 0) {
@@ -28,11 +25,11 @@ bool testunsigned(uint32_t min, uint32_t max, bool verbose) {
       printf("d = %u (unsigned) ", d);
     else {
       count++;
-      if(count % 10000 == 0) {
+      if (count % 10000 == 0) {
         printf(".");
+        fflush(NULL);
       }
     }
-    fflush(NULL);
     for (uint64_t a64 = 0; a64 < UINT64_C(0x100000000); a64++) {
       uint32_t a = (uint32_t)a64;
       uint32_t computedFastMod = fastmod_u32(a, M, d);
@@ -55,6 +52,9 @@ bool testunsigned(uint32_t min, uint32_t max, bool verbose) {
     }
     if (verbose)
       printf("ok!\n");
+    if (d == max) {
+      break;
+    }
   }
   if (verbose)
     printf("Unsigned fastmod test passed with divisors in interval [%u, %u].\n",
@@ -63,7 +63,7 @@ bool testunsigned(uint32_t min, uint32_t max, bool verbose) {
 }
 
 bool testdivunsigned(uint32_t min, uint32_t max, bool verbose) {
-  printf("Testing testdivunsigned with min = %d and max = %d\n", min, max);
+  printf("\n==Testing testdivunsigned with min = %d and max = %d\n", min, max);
   size_t count = 0;
   for (uint32_t d = min; (d <= max) && (d >= min); d++) {
     if (d == 0) {
@@ -79,11 +79,11 @@ bool testdivunsigned(uint32_t min, uint32_t max, bool verbose) {
       printf("d = %u (unsigned) ", d);
     else {
       count++;
-      if(count % 10000 == 0) {
+      if (count % 10000 == 0) {
         printf(".");
+        fflush(NULL);
       }
     }
-    fflush(NULL);
     for (uint64_t a64 = 0; a64 < UINT64_C(0x100000000); a64++) {
       uint32_t a = (uint32_t)a64;
       uint32_t computedDiv = a / d;
@@ -100,6 +100,9 @@ bool testdivunsigned(uint32_t min, uint32_t max, bool verbose) {
     }
     if (verbose)
       printf("ok!\n");
+    if (d == max) {
+      break;
+    }
   }
   if (verbose)
     printf("Unsigned fastdiv test passed with divisors in interval [%u, %u].\n",
@@ -108,7 +111,7 @@ bool testdivunsigned(uint32_t min, uint32_t max, bool verbose) {
 }
 
 bool testsigned(int32_t min, int32_t max, bool verbose) {
-  printf("Testing testsigned with min = %d and max = %d\n", min, max);
+  printf("\n==Testing testsigned with min = %d and max = %d\n", min, max);
   size_t count = 0;
   assert(min != max + 1); // infinite loop!
   for (int32_t d = min; (d <= max) && (d >= min); d++) {
@@ -125,11 +128,11 @@ bool testsigned(int32_t min, int32_t max, bool verbose) {
       printf("d = %d (signed) ", d);
     else {
       count++;
-      if(count % 10000 == 0) {
+      if (count % 10000 == 0) {
         printf(".");
+        fflush(NULL);
       }
     }
-    fflush(NULL);
     int32_t positive_d = d < 0 ? -d : d;
     uint64_t absolute_min32 = -INT64_C(0x80000000);
     if (d == -1)
@@ -149,6 +152,9 @@ bool testsigned(int32_t min, int32_t max, bool verbose) {
     }
     if (verbose)
       printf("ok!\n");
+    if (d == max) {
+      break;
+    }
   }
   if (verbose)
     printf("Signed fastmod test passed with divisors in interval [%d, %d].\n",
@@ -157,9 +163,10 @@ bool testsigned(int32_t min, int32_t max, bool verbose) {
 }
 
 bool testdivsigned(int32_t min, int32_t max, bool verbose) {
-  printf("Testing divsigned with min = %d and max = %d\n", min, max);
+  printf("\n==Testing divsigned with min = %d and max = %d\n", min, max);
   assert(min != max + 1); // infinite loop!
   size_t count = 0;
+  static_assert(int32_t(-2147483648) < int32_t(2147483647));
   for (int32_t d = min; (d <= max) && (d >= min); d++) {
     if (d == 0) {
       printf("skipping d = 0\n");
@@ -172,22 +179,22 @@ bool testdivsigned(int32_t min, int32_t max, bool verbose) {
     if (d == -1) {
       printf("skipping d = -1 as it is not supported\n");
       continue;
-    } 
+    }
     if (d == -2147483648) {
       printf("skipping d = -2147483648 as it is unsupported\n");
       continue;
     }
 
     uint64_t M = computeM_s32(d);
-    if (verbose)
-      printf("d = %d (signed) ", d);
-    else {
+    if (verbose) {
+      printf("d = %d (signed)", d);
+    } else {
       count++;
-      if(count % 10000 == 0) {
+      if (count % 10000 == 0) {
         printf(".");
+        fflush(NULL);
       }
     }
-    fflush(NULL);
     for (int64_t a64 = -INT64_C(0x80000000); a64 < INT64_C(0x80000000); a64++) {
       int32_t a = (int32_t)a64;
       int32_t computedDiv = a / d;
@@ -198,7 +205,7 @@ bool testdivsigned(int32_t min, int32_t max, bool verbose) {
             d, a);
         printf("expected %d div %d = %d \n", a, d, computedDiv);
         printf("got %d div %d = %d \n", a, d, computedFastDiv);
-        if(d == -2147483648) {
+        if (d == -2147483648) {
           printf("Note: d = -2147483648 is unsupported\n");
         } else {
           return false;
@@ -207,6 +214,9 @@ bool testdivsigned(int32_t min, int32_t max, bool verbose) {
     }
     if (verbose)
       printf("ok!\n");
+    if (d == max) {
+      break;
+    }
   }
   if (verbose)
     printf("Signed fastdiv test passed with divisors in interval [%d, %d].\n",
@@ -214,24 +224,24 @@ bool testdivsigned(int32_t min, int32_t max, bool verbose) {
   return true;
 }
 
-
-
 int main(int argc, char *argv[]) {
   bool isok = true;
   bool verbose = false;
-  for(int i = 0; i < argc; ++i) {
-    if(strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--verbose") == 0) {
-        verbose = true; break;
+  for (int i = 0; i < argc; ++i) {
+    if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--verbose") == 0) {
+      verbose = true;
+      break;
     }
   }
 
+  isok = isok && testdivsigned(0x7ffffff8, 0x7fffffff, verbose);
   isok = isok && testdivsigned(-0x80000000, -0x7ffffff8, verbose);
   isok = isok && testdivsigned(2, 10, verbose);
-  isok = isok && testdivsigned(0x7ffffff8, 0x7fffffff, verbose);
   isok = isok && testdivsigned(-10, -2, verbose);
   isok = isok && testunsigned64(1, 0x10, verbose);
   isok = isok && testunsigned64(0x000133F, 0xFFFF, verbose);
-  isok = isok && testunsigned64(UINT64_C(0xffffffffff00000), UINT64_C(0xffffffffff00000) + 0x100, verbose);
+  isok = isok && testunsigned64(UINT64_C(0xffffffffff00000),
+                                UINT64_C(0xffffffffff00000) + 0x100, verbose);
   isok = isok && testunsigned(1, 8, verbose);
   isok = isok && testunsigned(0xfffffff8, 0xffffffff, verbose);
 
