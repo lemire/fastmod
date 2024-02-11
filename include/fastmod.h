@@ -35,8 +35,8 @@ namespace fastmod {
 
 #ifdef _MSC_VER
 
-// __umulh is only available in x64 mode under Visual Studio: don't compile to
-// 32-bit!
+// __umulh is only available on x64, ARM64 mode under Visual Studio: don't compile in
+// 32-bit mode!
 FASTMOD_API uint64_t mul128_u32(uint64_t lowbits, uint32_t d) {
   return __umulh(lowbits, d);
 }
