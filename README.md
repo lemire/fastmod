@@ -17,7 +17,7 @@ Further reading:
 
 ##  Usage
 
-We support all major compilers (LLVM's clang, GNU GCC, Visual Studio). 
+We support all major compilers (LLVM's clang, GNU GCC, Visual Studio). This library only makes sense when compiling 64-bit binaries.
 
 It is a header-only library but we have unit tests. Assuming a Linux/macOS setting:
 
