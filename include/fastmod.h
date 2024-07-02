@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #else
-// In C++ <cstdbool>/<stdbool.h> are irelevant as bool is already a type
 #include <cstdint>
 #endif
 
@@ -162,18 +161,6 @@ FASTMOD_API __uint128_t computeM_u64(uint64_t d) {
   return M;
 }
 
-FASTMOD_API __uint128_t computeM_s64(int64_t d) {
-  if (d < 0)
-    d = -d;
-  __uint128_t M = UINT64_C(0xFFFFFFFFFFFFFFFF);
-  M <<= 64;
-  M |= UINT64_C(0xFFFFFFFFFFFFFFFF);
-  M /= d;
-  M += 1;
-  M += ((d & (d - 1)) == 0 ? 1 : 0);
-  return M;
-}
-
 FASTMOD_API uint64_t fastmod_u64(uint64_t a, __uint128_t M, uint64_t d) {
   __uint128_t lowbits = M * a;
   return mul128_u64(lowbits, d);
@@ -209,9 +196,6 @@ template <int32_t d> FASTMOD_API int32_t fastdiv(int32_t x) {
 } // fastmod
 #endif
 
-// There's no reason to polute the global scope with this macro once its use
-// ends This won't create any problems as the preprocessor will have done its
-// thing once it reaches this point
 #undef FASTMOD_API
 #undef FASTMOD_CONSTEXPR
 
