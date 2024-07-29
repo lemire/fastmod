@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.0...3.28)
 project(fastmod
   DESCRIPTION "A header file for fast 32-bit division and remainders on 64-bit hardware"
   LANGUAGES CXX
+  VERSION 0.1.0
 )
 
 set (CMAKE_CXX_STANDARD 11)
@@ -23,7 +24,7 @@ set(FASTMOD_VERSION_CONFIG "${CMAKE_CURRENT_BINARY_DIR}/module/fastmodConfigVers
 set(FASTMOD_PROJECT_CONFIG "${CMAKE_CURRENT_BINARY_DIR}/module/fastmodConfig.cmake")
 set(FASTMOD_CONFIG_INSTALL_DIR "${CMAKE_INSTALL_DATAROOTDIR}/cmake/fastmod")
 
-write_basic_package_version_file("${FASTMOD_VERSION_CONFIG}" VERSION 0.1 COMPATIBILITY AnyNewerVersion)
+write_basic_package_version_file("${FASTMOD_VERSION_CONFIG}" VERSION ${PROJECT_VERSION} COMPATIBILITY AnyNewerVersion)
 configure_package_config_file("cmake/config.cmake.in"
                               "${FASTMOD_PROJECT_CONFIG}"
                               INSTALL_DESTINATION "${FASTMOD_CONFIG_INSTALL_DIR}")
