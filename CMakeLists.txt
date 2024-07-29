@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0...3.28)
 
 project(fastmod
-  DESCRIPTION "A header file for fast 32-bit division remainders  on 64-bit hardware"
+  DESCRIPTION "A header file for fast 32-bit division and remainders on 64-bit hardware"
   LANGUAGES CXX
 )
 
@@ -17,17 +17,18 @@ add_library(fastmod INTERFACE)
 enable_testing()
 add_subdirectory(tests)
 include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
 
 set(FASTMOD_VERSION_CONFIG "${CMAKE_CURRENT_BINARY_DIR}/module/fastmodConfigVersion.cmake")
 set(FASTMOD_PROJECT_CONFIG "${CMAKE_CURRENT_BINARY_DIR}/module/fastmodConfig.cmake")
 set(FASTMOD_CONFIG_INSTALL_DIR "${CMAKE_INSTALL_DATAROOTDIR}/cmake/fastmod")
 
-
+write_basic_package_version_file("${FASTMOD_VERSION_CONFIG}" VERSION 0.1 COMPATIBILITY AnyNewerVersion)
 configure_package_config_file("cmake/config.cmake.in"
                               "${FASTMOD_PROJECT_CONFIG}"
                               INSTALL_DESTINATION "${FASTMOD_CONFIG_INSTALL_DIR}")
 
-install(DIRECTORY "${PROJECT_SOURCE_DIR}/include" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(DIRECTORY "${PROJECT_SOURCE_DIR}/include/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 install(FILES "${FASTMOD_PROJECT_CONFIG}" "${FASTMOD_VERSION_CONFIG}" DESTINATION "${FASTMOD_CONFIG_INSTALL_DIR}")
 install(EXPORT ${PROJECT_NAME}-targets NAMESPACE fastmod:: DESTINATION "${FASTMOD_CONFIG_INSTALL_DIR}")
 
@@ -42,14 +43,14 @@ install(TARGETS fastmod
 
 target_include_directories(fastmod INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCDIR}>)
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 add_library(fastmod::fastmod ALIAS fastmod)
 
 
 set(CPACK_PACKAGE_VENDOR "Daniel Lemire")
 set(CPACK_PACKAGE_CONTACT "lemire@gmail.com")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Roaring bitmaps in C")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A header file for fast 32-bit division and remainders on 64-bit hardware.")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 
