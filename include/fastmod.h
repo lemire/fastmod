@@ -55,63 +55,63 @@ FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
 // Visual Studio lacks support for 128-bit integers so they simulated are using
 // multiword arithmatic and VS specific intrinsics.
 
-    FASTMOD_API uint64_t add128_u64(
-        uint64_t M_hi, uint64_t M_lo, uint64_t addend, uint64_t* sum_hi
-    ) {
-        uint64_t sum_lo;
+FASTMOD_API uint64_t add128_u64(
+    uint64_t M_hi, uint64_t M_lo, uint64_t addend, uint64_t* sum_hi
+  ) {
+  uint64_t sum_lo;
 
-        bool carry = _addcarry_u64(0, M_lo, addend, &sum_lo);
-        _addcarry_u64(carry, M_hi, 0, sum_hi); // Encourages 'adc'
+  bool carry = _addcarry_u64(0, M_lo, addend, &sum_lo);
+  _addcarry_u64(carry, M_hi, 0, sum_hi); // Encourages 'adc'
 
-        return sum_lo;
-    }
+  return sum_lo;
+}
 
-    FASTMOD_API uint64_t div128_u64(
-        uint64_t dividend_hi, uint64_t dividend_lo, uint64_t divisor, uint64_t* quotient_hi
-    ) {
-        *quotient_hi = dividend_hi / divisor;
-        uint64_t remainder_hi = dividend_hi % divisor;
+FASTMOD_API uint64_t div128_u64(
+    uint64_t dividend_hi, uint64_t dividend_lo, uint64_t divisor, uint64_t* quotient_hi
+  ) {
+  *quotient_hi = dividend_hi / divisor;
+  uint64_t remainder_hi = dividend_hi % divisor;
 
-        // When long div starts to consider the low dividend,
-        // the high part would have became its remainder.
-        // Prevents an arithmetic exception when _udiv128 calculates a >64-bit quotient
-        uint64_t remainder; // Discard
-        return _udiv128(remainder_hi, dividend_lo, divisor, &remainder);
-    }
+  // When long div starts to consider the low dividend,
+  // the high part would have became its remainder.
+  // Prevents an arithmetic exception when _udiv128 calculates a >64-bit quotient
+  uint64_t remainder; // Discard
+  return _udiv128(remainder_hi, dividend_lo, divisor, &remainder);
+}
 
-    // Multiplies the 128-bit integer by d and returns the lower 128-bits of the product
-    FASTMOD_API uint64_t mul128_u64_lo(
-        uint64_t M_hi, uint64_t M_lo, uint64_t d, uint64_t* product_hi
-    ) {
-        uint64_t lowbits_hi;
-        uint64_t lowbits_lo = _umul128(M_lo, d, &lowbits_hi);
+// Multiplies the 128-bit integer by d and returns the lower 128-bits of the product
+FASTMOD_API uint64_t mul128_u64_lo(
+    uint64_t M_hi, uint64_t M_lo, uint64_t d, uint64_t* product_hi
+  ) {
+  uint64_t lowbits_hi;
+  uint64_t lowbits_lo = _umul128(M_lo, d, &lowbits_hi);
 
-        *product_hi = lowbits_hi + (M_hi * d);
+  *product_hi = lowbits_hi + (M_hi * d);
 
-        return lowbits_lo;
-    }
+  return lowbits_lo;
+}
 
-    // Multiplies the 128-bit integer by d and returns the highest 64-bits of the product
-    FASTMOD_API uint64_t mul128_u64_hi(uint64_t lowbits_hi, uint64_t lowbits_lo, uint64_t d) {
-        uint64_t bottomHalf_hi = __umulh(lowbits_lo, d);
+// Multiplies the 128-bit integer by d and returns the highest 64-bits of the product
+FASTMOD_API uint64_t mul128_u64_hi(uint64_t lowbits_hi, uint64_t lowbits_lo, uint64_t d) {
+  uint64_t bottomHalf_hi = __umulh(lowbits_lo, d);
 
-        uint64_t topHalf_hi;
-        uint64_t topHalf_lo = _umul128(lowbits_hi, d, &topHalf_hi);
+  uint64_t topHalf_hi;
+  uint64_t topHalf_lo = _umul128(lowbits_hi, d, &topHalf_hi);
 
-        uint64_t bothHalves_hi;
-        add128_u64(topHalf_hi, topHalf_lo, bottomHalf_hi, &bothHalves_hi);
+  uint64_t bothHalves_hi;
+  add128_u64(topHalf_hi, topHalf_lo, bottomHalf_hi, &bothHalves_hi);
 
-        return bothHalves_hi;
-    }
+  return bothHalves_hi;
+}
 
-    FASTMOD_API bool isgreater_u128(uint64_t a_hi, uint64_t a_low, uint64_t b_hi, uint64_t b_low) {
-        // Only when low is greater, high equality should return true
-        uint64_t discard;
-        bool borrowWhenEql = _subborrow_u64(0, b_low, a_low, &discard);
+FASTMOD_API bool isgreater_u128(uint64_t a_hi, uint64_t a_low, uint64_t b_hi, uint64_t b_low) {
+  // Only when low is greater, high equality should return true
+  uint64_t discard;
+  bool borrowWhenEql = _subborrow_u64(0, b_low, a_low, &discard);
 
-        // borrow(b - (a + C_in)) = C_in? (a >= b) : (a > b)
-        return _subborrow_u64(borrowWhenEql, b_hi, a_hi, &discard);
-    }
+  // borrow(b - (a + C_in)) = C_in? (a >= b) : (a > b)
+  return _subborrow_u64(borrowWhenEql, b_hi, a_hi, &discard);
+}
 
 #endif // End MSVC 64-bit support
 #else // _MSC_VER NOT defined
