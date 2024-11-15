@@ -119,7 +119,7 @@ bool testsigned(int32_t min, int32_t max, bool verbose) {
       printf("skipping d = 0 as it cannot be supported\n");
       continue;
     }
-    if (d == -2147483648) {
+    if (d == INT32_MIN) {
       printf("skipping d = -2147483648 as it is unsupported\n");
       continue;
     }
@@ -166,7 +166,7 @@ bool testdivsigned(int32_t min, int32_t max, bool verbose) {
   printf("\n==Testing divsigned with min = %d and max = %d\n", min, max);
   assert(min != max + 1); // infinite loop!
   size_t count = 0;
-  static_assert(int32_t(-2147483648) < int32_t(2147483647));
+  static_assert(int32_t(INT32_MIN) < int32_t(2147483647));
   for (int32_t d = min; (d <= max) && (d >= min); d++) {
     if (d == 0) {
       printf("skipping d = 0\n");
@@ -205,7 +205,7 @@ bool testdivsigned(int32_t min, int32_t max, bool verbose) {
             d, a);
         printf("expected %d div %d = %d \n", a, d, computedDiv);
         printf("got %d div %d = %d \n", a, d, computedFastDiv);
-        if (d == -2147483648) {
+        if (d == INT32_MIN) {
           printf("Note: d = -2147483648 is unsupported\n");
         } else {
           return false;
@@ -235,7 +235,7 @@ int main(int argc, char *argv[]) {
   }
 
   isok = isok && testdivsigned(0x7ffffff8, 0x7fffffff, verbose);
-  isok = isok && testdivsigned(-0x80000000, -0x7ffffff8, verbose);
+  isok = isok && testdivsigned(INT32_MIN, -0x7ffffff8, verbose);
   isok = isok && testdivsigned(2, 10, verbose);
   isok = isok && testdivsigned(-10, -2, verbose);
   isok = isok && testunsigned64(1, 0x10, verbose);
@@ -251,7 +251,7 @@ int main(int argc, char *argv[]) {
   isok = isok && testsigned(-8, -1, verbose);
   isok = isok && testsigned(1, 8, verbose);
   isok = isok && testsigned(0x7ffffff8, 0x7fffffff, verbose);
-  isok = isok && testsigned(-0x80000000, -0x7ffffff8, verbose);
+  isok = isok && testsigned(INT32_MIN, -0x7ffffff8, verbose);
   for (int k = 0; k < 100; k++) {
     int32_t x = rand();
     isok = isok && testsigned(x, x, verbose);

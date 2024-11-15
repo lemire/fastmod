@@ -15,8 +15,8 @@ bool testunsigned64(uint64_t min, uint64_t max, bool verbose) {
       printf("skipping d = 0\n");
       continue;
     }
-#ifndef _MSC_VER
-    __uint128_t M64 = computeM_u64(d);
+
+    auto M64 = computeM_u64(d);
     if (verbose)
       printf("d = %" PRIu64 " (unsigned 64-bit) ", d);
     else
@@ -37,7 +37,7 @@ bool testunsigned64(uint64_t min, uint64_t max, bool verbose) {
         return false;
       }
     }
-#endif
+
     if (verbose)
       printf("ok!\n");
   }

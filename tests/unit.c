@@ -9,6 +9,9 @@
 #ifdef __cplusplus
 using namespace fastmod;
 #endif
+#ifdef _MSC_VER
+typedef fastmod_u128_t __uint128_t;
+#endif
 
 bool testunsigned64(uint64_t min, uint64_t max, bool verbose) {
   for (uint64_t d = min; (d <= max) && (d >= min); d++) {
@@ -130,7 +133,7 @@ bool testsigned(int32_t min, int32_t max, bool verbose) {
       printf("skipping d = 0 as it cannot be supported\n");
       continue;
     }
-    if (d == -2147483648) {
+    if (d == INT32_MIN) {
       printf("skipping d = -2147483648 as it is unsupported\n");
       continue;
     }
@@ -181,7 +184,7 @@ bool testdivsigned(int32_t min, int32_t max, bool verbose) {
       printf("skipping d = -1 as it is not supported\n");
       continue;
     }
-    if (d == -2147483648) {
+    if (d == INT32_MIN) {
       printf("skipping d = -2147483648 as it is unsupported\n");
       continue;
     }
@@ -228,7 +231,7 @@ int main(int argc, char *argv[]) {
   isok = isok && testunsigned64(UINT64_C(0xffffffffff00000), UINT64_C(0xffffffffff00000) + 0x100, verbose);
   isok = isok && testunsigned(1, 8, verbose);
   isok = isok && testunsigned(0xfffffff8, 0xffffffff, verbose);
-  isok = isok && testdivsigned(-0x80000000, -0x7ffffff8, verbose);
+  isok = isok && testdivsigned(INT32_MIN, -0x7ffffff8, verbose);
   isok = isok && testdivsigned(2, 10, verbose);
   isok = isok && testdivsigned(0x7ffffff8, 0x7fffffff, verbose);
   isok = isok && testdivsigned(-10, -2, verbose);
@@ -239,7 +242,7 @@ int main(int argc, char *argv[]) {
   isok = isok && testsigned(-8, -1, verbose);
   isok = isok && testsigned(1, 8, verbose);
   isok = isok && testsigned(0x7ffffff8, 0x7fffffff, verbose);
-  isok = isok && testsigned(-0x80000000, -0x7ffffff8, verbose);
+  isok = isok && testsigned(INT32_MIN, -0x7ffffff8, verbose);
   for (int k = 0; k < 100; k++) {
     int32_t x = rand();
     isok = isok && testsigned(x, x, verbose);

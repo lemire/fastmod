@@ -4,11 +4,27 @@
 #include <iostream>
 #include <random>
 
+#ifdef _MSC_VER
+
+// Taken from Facebook's folly
+// https://github.com/facebook/folly/blob/0f6bc7a3f0133bd49226b50026de60e708900577/folly/Benchmark.h#L270-L284
+#pragma optimize("", off)
+inline void doNotOptimizeDependencySink(const void*) {}
+
+#pragma optimize("", on)
+template <class T>
+void doNotOptimizeAway(const T& datum) {
+    doNotOptimizeDependencySink(&datum);
+}
+#else
+
 template <typename T> inline void doNotOptimizeAway(T &&datum) {
   // Taken from Facebook's folly
   // https://github.com/facebook/folly/blob/0f6bc7a3f0133bd49226b50026de60e708900577/folly/Benchmark.h#L318-L326
   asm volatile("" ::"m"(datum) : "memory");
 }
+
+#endif
 
 using namespace fastmod;
 template <typename F> uint64_t time(const F &x, std::vector<uint64_t> &zomg) {
@@ -30,7 +46,7 @@ int main() {
   std::vector<uint64_t> zomg(100000000);
   for (auto &e : zomg)
     e = mt();
-#ifndef _MSC_VER
+
   const auto M = computeM_u64(mod);
   std::cout << "timing fastmod_u64 " << std::endl;
   auto fmtime =
@@ -59,5 +75,5 @@ int main() {
   std::fprintf(stderr,
                "masking is %lf as fast as fastmod and %lf as fast as modding\n",
                (double)fmtime / masktime, (double)modtime / masktime);
-#endif
+
 }
