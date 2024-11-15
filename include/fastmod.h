@@ -49,6 +49,71 @@ FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
   return mul128_u32(lowbits, d);
 }
 
+// Need _udiv128 to calculate the magic number (maps to x86 64-bit div)
+#if defined(_M_AMD64) && ( _MSC_VER >= 1923)
+// This is for the 64-bit functions.
+// Visual Studio lacks support for 128-bit integers so they simulated are using
+// multiword arithmatic and VS specific intrinsics.
+
+    FASTMOD_API uint64_t add128_u64(
+        uint64_t M_hi, uint64_t M_lo, uint64_t addend, uint64_t* sum_hi
+    ) {
+        uint64_t sum_lo;
+
+        bool carry = _addcarry_u64(0, M_lo, addend, &sum_lo);
+        _addcarry_u64(carry, M_hi, 0, sum_hi); // Encourages 'adc'
+
+        return sum_lo;
+    }
+
+    FASTMOD_API uint64_t div128_u64(
+        uint64_t dividend_hi, uint64_t dividend_lo, uint64_t divisor, uint64_t* quotient_hi
+    ) {
+        *quotient_hi = dividend_hi / divisor;
+        uint64_t remainder_hi = dividend_hi % divisor;
+
+        // When long div starts to consider the low dividend,
+        // the high part would have became its remainder.
+        // Prevents an arithmetic exception when _udiv128 calculates a >64-bit quotient
+        uint64_t remainder; // Discard
+        return _udiv128(remainder_hi, dividend_lo, divisor, &remainder);
+    }
+
+    // Multiplies the 128-bit integer by d and returns the lower 128-bits of the product
+    FASTMOD_API uint64_t mul128_u64_lo(
+        uint64_t M_hi, uint64_t M_lo, uint64_t d, uint64_t* product_hi
+    ) {
+        uint64_t lowbits_hi;
+        uint64_t lowbits_lo = _umul128(M_lo, d, &lowbits_hi);
+
+        *product_hi = lowbits_hi + (M_hi * d);
+
+        return lowbits_lo;
+    }
+
+    // Multiplies the 128-bit integer by d and returns the highest 64-bits of the product
+    FASTMOD_API uint64_t mul128_u64_hi(uint64_t lowbits_hi, uint64_t lowbits_lo, uint64_t d) {
+        uint64_t bottomHalf_hi = __umulh(lowbits_lo, d);
+
+        uint64_t topHalf_hi;
+        uint64_t topHalf_lo = _umul128(lowbits_hi, d, &topHalf_hi);
+
+        uint64_t bothHalves_hi;
+        add128_u64(topHalf_hi, topHalf_lo, bottomHalf_hi, &bothHalves_hi);
+
+        return bothHalves_hi;
+    }
+
+    FASTMOD_API bool isgreater_u128(uint64_t a_hi, uint64_t a_low, uint64_t b_hi, uint64_t b_low) {
+        // Only when low is greater, high equality should return true
+        uint64_t discard;
+        bool borrowWhenEql = _subborrow_u64(0, b_low, a_low, &discard);
+
+        // borrow(b - (a + C_in)) = C_in? (a >= b) : (a > b)
+        return _subborrow_u64(borrowWhenEql, b_hi, a_hi, &discard);
+    }
+
+#endif // End MSVC 64-bit support
 #else // _MSC_VER NOT defined
 
 FASTMOD_API uint64_t mul128_u32(uint64_t lowbits, uint32_t d) {
@@ -143,13 +208,11 @@ FASTMOD_API int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
   return (int32_t)(highbits);
 }
 
-#ifndef _MSC_VER
-
 // What follows is the 64-bit functions.
-// They are currently not supported on Visual Studio
-// due to the lack of a mul128_u64 function.
-// They may not be faster than what the compiler
-// can produce.
+// They may not be faster than what the compiler can produce.
+
+#ifndef _MSC_VER
+// No __uint128_t in VS, so they have to use a diffrent method.
 
 FASTMOD_API __uint128_t computeM_u64(uint64_t d) {
   // what follows is just ((__uint128_t)0 - 1) / d) + 1 spelled out
@@ -169,6 +232,59 @@ FASTMOD_API uint64_t fastmod_u64(uint64_t a, __uint128_t M, uint64_t d) {
 FASTMOD_API uint64_t fastdiv_u64(uint64_t a, __uint128_t M) {
   return mul128_u64(M, a);
 }
+
+// given precomputed M, is_divisible checks whether n % d == 0
+FASTMOD_API bool is_divisible_u64(uint64_t n, __uint128_t M) { return n * M <= M - 1; }
+
+#elif defined(_MSC_VER) && defined(_M_AMD64) && (_MSC_VER >= 1923)
+// Visual Studio lacks support for 128-bit integers
+// so they simulated are using multiword arithmatic
+// and VS specific intrinsics.
+
+// Using a struct in the multiword arithmetic functions produces
+// worse asm output but isn't that bad for public functions
+
+typedef struct { uint64_t low; uint64_t hi; } fastmod_u128_t;
+
+FASTMOD_API fastmod_u128_t computeM_u64(uint64_t d) {
+  // UINT128MAX / d
+  uint64_t magic_quotient_hi;
+  uint64_t magic_quotient_lo = div128_u64(
+    ~UINT64_C(0), ~UINT64_C(0), d, &magic_quotient_hi
+  );
+
+  // quotient_u128 + 1
+  fastmod_u128_t M;
+  M.low = add128_u64(magic_quotient_hi, magic_quotient_lo, 1, &M.hi);
+  return M;
+}
+
+// computes (a % d) given precomputed M
+FASTMOD_API uint64_t fastmod_u64(uint64_t a, fastmod_u128_t M, uint64_t d) {
+  uint64_t lowbits_hi;
+  uint64_t lowbits_lo = mul128_u64_lo(M.hi, M.low, a, &lowbits_hi);
+
+  return mul128_u64_hi(lowbits_hi, lowbits_lo, d);
+}
+
+// computes (a / d) given precomputed M for d>1
+FASTMOD_API uint64_t fastdiv_u64(uint64_t a, fastmod_u128_t M) {
+  return mul128_u64_hi(M.hi, M.low, a);
+}
+
+// given precomputed M, is_divisible checks whether n % d == 0
+FASTMOD_API bool is_divisible_u64(uint64_t n, fastmod_u128_t M) {
+  uint64_t lowBits_hi;
+  uint64_t lowBits_low = mul128_u64_lo(M.hi, M.low, n, &lowBits_hi);
+
+  uint64_t Mdec_low, Mdec_hi;
+  bool borrow_hi = _subborrow_u64(0, M.low, 1, &Mdec_low);
+  _subborrow_u64(borrow_hi, M.hi, 0, &Mdec_hi);
+
+  // n * M <= M - 1
+  return !isgreater_u128(lowBits_hi, lowBits_low, Mdec_hi, Mdec_low);
+}
+
 
 // End of the 64-bit functions
 

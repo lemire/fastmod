@@ -3,11 +3,27 @@
 #include <cstdio>
 #include <random>
 
+#ifdef _MSC_VER
+
+// Taken from Facebook's folly
+// https://github.com/facebook/folly/blob/0f6bc7a3f0133bd49226b50026de60e708900577/folly/Benchmark.h#L270-L284
+#pragma optimize("", off)
+inline void doNotOptimizeDependencySink(const void*) {}
+
+#pragma optimize("", on)
+template <class T>
+void doNotOptimizeAway(const T& datum) {
+    doNotOptimizeDependencySink(&datum);
+}
+#else
+
 template <typename T> inline void doNotOptimizeAway(T &&datum) {
   // Taken from Facebook's folly
   // https://github.com/facebook/folly/blob/0f6bc7a3f0133bd49226b50026de60e708900577/folly/Benchmark.h#L318-L326
   asm volatile("" ::"m"(datum) : "memory");
 }
+
+#endif
 
 using namespace fastmod;
 template <typename F>
@@ -29,7 +45,7 @@ int main() {
   std::vector<uint64_t> zomg(10000000);
   for (auto &e : zomg)
     e = mt();
-#ifndef _MSC_VER
+
   const auto M = computeM_u64(mod);
   auto fm = time(
       [M, mod](uint64_t v) {
@@ -39,5 +55,5 @@ int main() {
   auto sm = time([mod](uint64_t x) { return (x % mod) + (x / mod); }, zomg);
   std::fprintf(stderr, "fastmod + fastdiv is %lf as fast as x86 mod + div: \n",
                (double)sm / fm);
-#endif
+
 }
