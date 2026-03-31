@@ -1,6 +1,5 @@
 # fastmod
 
-[![CI](https://github.com/lemire/fastmod/actions/workflows/ci.yml/badge.svg)](https://github.com/lemire/fastmod/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 A header-only library for fast 32-bit division and remainder operations on 64-bit hardware.
