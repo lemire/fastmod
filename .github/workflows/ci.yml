@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  ubuntu:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {name: GCC 12, cc: gcc-12, cxx: g++-12}
+          - {name: GCC 14, cc: gcc-14, cxx: g++-14}
+          - {name: Clang 16, cc: clang-16, cxx: clang++-16}
+          - {name: Clang 18, cc: clang-18, cxx: clang++-18}
+    name: Ubuntu (${{matrix.name}})
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test
+        env:
+          CC: ${{matrix.cc}}
+          CXX: ${{matrix.cxx}}
+        run: |
+          cmake -B build -DFASTMOD_EXHAUSTIVE_TESTS=ON
+          cmake --build build
+          ctest --test-dir build --output-on-failure
+
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {name: AppleClang (x86_64), runner: macos-13}
+          - {name: AppleClang (arm64), runner: macos-14}
+    name: macOS (${{matrix.name}})
+    runs-on: ${{matrix.runner}}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test
+        run: |
+          cmake -B build -DFASTMOD_EXHAUSTIVE_TESTS=ON
+          cmake --build build
+          ctest --test-dir build --output-on-failure
+
+  windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {arch: x64, config: Release}
+          - {arch: x64, config: Debug}
+          - {arch: ARM64, config: Release}
+    name: Windows (MSVC ${{matrix.arch}}/${{matrix.config}})
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -B build -A ${{matrix.arch}}
+      - name: Build
+        run: cmake --build build --config ${{matrix.config}}
+      - name: Test
+        if: matrix.arch != 'ARM64'
+        run: ctest --test-dir build --output-on-failure -C ${{matrix.config}}
+
+  sanitizers:
+    name: Sanitizers (Clang)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test with ASan/UBSan
+        env:
+          CC: clang-18
+          CXX: clang++-18
+          CFLAGS: -fsanitize=address,undefined -fno-omit-frame-pointer
+          CXXFLAGS: -fsanitize=address,undefined -fno-omit-frame-pointer
+          LDFLAGS: -fsanitize=address,undefined
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Debug -DFASTMOD_EXHAUSTIVE_TESTS=ON
+          cmake --build build
+          ctest --test-dir build --output-on-failure
