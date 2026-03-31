@@ -127,14 +127,15 @@ FASTMOD_API bool isgreater_u128(uint64_t a_hi, uint64_t a_low, uint64_t b_hi, ui
 
 #endif // _M_AMD64 / _M_ARM64
 
-// Shared between x64 and ARM64: both have _umul128 and __umulh
+// Shared between x64 and ARM64: both have __umulh.
+// x64 also has _umul128; on ARM64 we use __umulh + plain multiply instead.
 
 // Multiplies the 128-bit integer by d and returns the lower 128-bits of the product
 FASTMOD_API uint64_t mul128_u64_lo(
     uint64_t M_hi, uint64_t M_lo, uint64_t d, uint64_t* product_hi
   ) {
-  uint64_t lowbits_hi;
-  uint64_t lowbits_lo = _umul128(M_lo, d, &lowbits_hi);
+  uint64_t lowbits_hi = __umulh(M_lo, d);
+  uint64_t lowbits_lo = M_lo * d;
 
   *product_hi = lowbits_hi + (M_hi * d);
 
@@ -145,8 +146,8 @@ FASTMOD_API uint64_t mul128_u64_lo(
 FASTMOD_API uint64_t mul128_u64_hi(uint64_t lowbits_hi, uint64_t lowbits_lo, uint64_t d) {
   uint64_t bottomHalf_hi = __umulh(lowbits_lo, d);
 
-  uint64_t topHalf_hi;
-  uint64_t topHalf_lo = _umul128(lowbits_hi, d, &topHalf_hi);
+  uint64_t topHalf_hi = __umulh(lowbits_hi, d);
+  uint64_t topHalf_lo = lowbits_hi * d;
 
   uint64_t bothHalves_hi;
   add128_u64(topHalf_hi, topHalf_lo, bottomHalf_hi, &bothHalves_hi);
@@ -318,9 +319,8 @@ FASTMOD_API bool is_divisible_u64(uint64_t n, fastmod_u128_t M) {
   uint64_t lowBits_hi;
   uint64_t lowBits_low = mul128_u64_lo(M.hi, M.low, n, &lowBits_hi);
 
-  uint64_t Mdec_low, Mdec_hi;
-  bool borrow_hi = _subborrow_u64(0, M.low, 1, &Mdec_low);
-  _subborrow_u64(borrow_hi, M.hi, 0, &Mdec_hi);
+  uint64_t Mdec_low = M.low - 1;
+  uint64_t Mdec_hi = M.hi - (M.low == 0 ? 1 : 0);
 
   // n * M <= M - 1
   return !isgreater_u128(lowBits_hi, lowBits_low, Mdec_hi, Mdec_low);
