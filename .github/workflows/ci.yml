@@ -39,7 +39,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {name: AppleClang (x86_64), runner: macos-13}
           - {name: AppleClang (arm64), runner: macos-14}
     name: macOS (${{matrix.name}})
     runs-on: ${{matrix.runner}}
