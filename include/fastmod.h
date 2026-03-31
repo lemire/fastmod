@@ -49,11 +49,15 @@ FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
   return mul128_u32(lowbits, d);
 }
 
-// Need _udiv128 to calculate the magic number (maps to x86 64-bit div)
-#if defined(_M_AMD64) && ( _MSC_VER >= 1923)
+// 64-bit support requires _umul128 and __umulh (available on both x64 and ARM64).
+// x64 additionally has _udiv128, _addcarry_u64, _subborrow_u64.
+// ARM64 uses portable fallbacks for those.
+#if defined(_MSC_VER) && (defined(_M_AMD64) || defined(_M_ARM64)) && (_MSC_VER >= 1923)
 // This is for the 64-bit functions.
-// Visual Studio lacks support for 128-bit integers so they simulated are using
-// multiword arithmatic and VS specific intrinsics.
+// Visual Studio lacks support for 128-bit integers so they are simulated using
+// multiword arithmetic and VS specific intrinsics.
+
+#if defined(_M_AMD64)
 
 FASTMOD_API uint64_t add128_u64(
     uint64_t M_hi, uint64_t M_lo, uint64_t addend, uint64_t* sum_hi
@@ -79,6 +83,52 @@ FASTMOD_API uint64_t div128_u64(
   return _udiv128(remainder_hi, dividend_lo, divisor, &remainder);
 }
 
+FASTMOD_API bool isgreater_u128(uint64_t a_hi, uint64_t a_low, uint64_t b_hi, uint64_t b_low) {
+  // Only when low is greater, high equality should return true
+  uint64_t discard;
+  bool borrowWhenEql = _subborrow_u64(0, b_low, a_low, &discard);
+
+  // borrow(b - (a + C_in)) = C_in? (a >= b) : (a > b)
+  return _subborrow_u64(borrowWhenEql, b_hi, a_hi, &discard);
+}
+
+#elif defined(_M_ARM64)
+
+FASTMOD_API uint64_t add128_u64(
+    uint64_t M_hi, uint64_t M_lo, uint64_t addend, uint64_t* sum_hi
+  ) {
+  uint64_t sum_lo = M_lo + addend;
+  *sum_hi = M_hi + (sum_lo < M_lo ? 1 : 0);
+  return sum_lo;
+}
+
+FASTMOD_API uint64_t div128_u64(
+    uint64_t dividend_hi, uint64_t dividend_lo, uint64_t divisor, uint64_t* quotient_hi
+  ) {
+  *quotient_hi = dividend_hi / divisor;
+  uint64_t hi = dividend_hi % divisor;
+
+  // 128-by-64 division via binary long division (hi < divisor is guaranteed)
+  uint64_t quotient_lo = 0;
+  for (int i = 63; i >= 0; i--) {
+    hi = (hi << 1) | (dividend_lo >> 63);
+    dividend_lo <<= 1;
+    if (hi >= divisor) {
+      hi -= divisor;
+      quotient_lo |= (uint64_t)1 << i;
+    }
+  }
+  return quotient_lo;
+}
+
+FASTMOD_API bool isgreater_u128(uint64_t a_hi, uint64_t a_low, uint64_t b_hi, uint64_t b_low) {
+  return (a_hi > b_hi) || (a_hi == b_hi && a_low > b_low);
+}
+
+#endif // _M_AMD64 / _M_ARM64
+
+// Shared between x64 and ARM64: both have _umul128 and __umulh
+
 // Multiplies the 128-bit integer by d and returns the lower 128-bits of the product
 FASTMOD_API uint64_t mul128_u64_lo(
     uint64_t M_hi, uint64_t M_lo, uint64_t d, uint64_t* product_hi
@@ -102,15 +152,6 @@ FASTMOD_API uint64_t mul128_u64_hi(uint64_t lowbits_hi, uint64_t lowbits_lo, uin
   add128_u64(topHalf_hi, topHalf_lo, bottomHalf_hi, &bothHalves_hi);
 
   return bothHalves_hi;
-}
-
-FASTMOD_API bool isgreater_u128(uint64_t a_hi, uint64_t a_low, uint64_t b_hi, uint64_t b_low) {
-  // Only when low is greater, high equality should return true
-  uint64_t discard;
-  bool borrowWhenEql = _subborrow_u64(0, b_low, a_low, &discard);
-
-  // borrow(b - (a + C_in)) = C_in? (a >= b) : (a > b)
-  return _subborrow_u64(borrowWhenEql, b_hi, a_hi, &discard);
 }
 
 #endif // End MSVC 64-bit support
@@ -236,7 +277,7 @@ FASTMOD_API uint64_t fastdiv_u64(uint64_t a, __uint128_t M) {
 // given precomputed M, is_divisible checks whether n % d == 0
 FASTMOD_API bool is_divisible_u64(uint64_t n, __uint128_t M) { return n * M <= M - 1; }
 
-#elif defined(_MSC_VER) && defined(_M_AMD64) && (_MSC_VER >= 1923)
+#elif defined(_MSC_VER) && (defined(_M_AMD64) || defined(_M_ARM64)) && (_MSC_VER >= 1923)
 // Visual Studio lacks support for 128-bit integers
 // so they simulated are using multiword arithmatic
 // and VS specific intrinsics.
