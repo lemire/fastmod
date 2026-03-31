@@ -1,98 +1,163 @@
 # fastmod
-[![Ubuntu 22.04 CI (GCC 11)](https://github.com/lemire/fastmod/actions/workflows/ubuntu22.yml/badge.svg)](https://github.com/lemire/fastmod/actions/workflows/ubuntu22.yml)
-[![VS17-CI](https://github.com/lemire/fastmod/actions/workflows/vs17.yml/badge.svg)](https://github.com/lemire/fastmod/actions/workflows/vs17.yml)
 
-A header file for fast 32-bit division remainders  on 64-bit hardware.
+[![CI](https://github.com/lemire/fastmod/actions/workflows/ci.yml/badge.svg)](https://github.com/lemire/fastmod/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-How fast? Faster than your compiler can do it!
+A header-only library for fast 32-bit division and remainder operations on 64-bit hardware.
 
-Compilers cleverly replace divisions by multiplications and shifts, if the divisor is known at compile time. In a hashing benchmark, our simple C code can beat  state-of-the-art compilers (e.g., LLVM clang, GNU GCC) on a recent Intel processor (Skylake).
+This library provides optimized implementations that can outperform compiler-generated code for constant divisors, making it ideal for performance-critical applications like hashing algorithms.
 
-<img src="docs/hashbenches-skylake-clang.png" width="90%">
+## Table of Contents
 
-Further reading:
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [API Reference](#api-reference)
+- [Building and Testing](#building-and-testing)
+- [Benchmarks](#benchmarks)
+- [Contributing](#contributing)
+- [License](#license)
+- [Further Reading](#further-reading)
 
-- [Faster Remainder by Direct Computation: Applications to Compilers and Software Libraries](https://arxiv.org/abs/1902.01961), Software: Practice and Experience  49 (6), 2019.
+## Features
 
+- **Fast Operations**: Faster than compiler-optimized divisions for known divisors.
+- **Header-Only**: Easy to integrate into existing projects.
+- **Cross-Platform**: Supports major compilers (Clang, GCC, Visual Studio).
+- **Comprehensive Tests**: Exhaustive unit tests ensure correctness.
+- **C and C++ Support**: Works in both languages with appropriate namespaces.
 
-##  Usage
+## Installation
 
-We support all major compilers (LLVM's clang, GNU GCC, Visual Studio). This library only makes sense when compiling 64-bit binaries.
+Clone the repository and include `include/fastmod.h` in your project.
 
-It is a header-only library but we have unit tests. Assuming a Linux/macOS setting:
-
+```bash
+git clone https://github.com/lemire/fastmod.git
 ```
+
+Since it's header-only, no additional installation steps are required.
+
+## Usage
+
+Include the header in your C or C++ file:
+
+```c
+#include "fastmod.h"
+```
+
+For C++, use the `fastmod` namespace:
+
+```cpp
+#include "fastmod.h"
+
+// Use fastmod::function_name
+```
+
+## API Reference
+
+### Unsigned Operations
+
+- `uint64_t computeM_u32(uint32_t d)`: Compute the multiplier for divisor `d` (do once per divisor).
+- `uint32_t fastmod_u32(uint64_t a, uint64_t M, uint32_t d)`: Compute `a % d`.
+- `uint32_t fastdiv_u32(uint64_t a, uint64_t M)`: Compute `a / d` (requires `d > 1`).
+- `bool is_divisible(uint64_t a, uint64_t M)`: Check if `a` is divisible by `d`.
+
+### Signed Operations
+
+- `uint64_t computeM_s32(int32_t d)`: Compute the multiplier for divisor `d` (use absolute value for `d`).
+- `int32_t fastmod_s32(int64_t a, uint64_t M, int32_t positive_d)`: Compute `a % d`.
+- `int32_t fastdiv_s32(int64_t a, uint64_t M, int32_t d)`: Compute `a / d` (avoid `d` in `{-1, 1, INT32_MIN}`).
+
+### Example
+
+```c
+#include "fastmod.h"
+
+// Unsigned example
+uint32_t d = 7;
+uint64_t M = computeM_u32(d);
+uint32_t result = fastmod_u32(100, M, d); // 100 % 7
+
+// Signed example
+int32_t sd = -5;
+int32_t pos_d = sd < 0 ? -sd : sd;
+uint64_t SM = computeM_s32(sd);
+int32_t sresult = fastmod_s32(-100, SM, pos_d); // -100 % -5
+```
+
+## Building and Testing
+
+### Prerequisites
+
+- C++11 compatible compiler
+- CMake (for cross-platform builds)
+- Make (for Unix-like systems)
+
+### Build with Make (Linux/macOS)
+
+```bash
 make
 ./unit
 ```
 
-The tests are exhaustive and take some time.
+### Build with CMake
 
-You can also build the tests using cmake which will work nearly everywhere (including under Windows).
-
-```
-cmake -B build 
-```
-
-To enable the exhaustive tests, do...
-
-```
-cmake -B build -D FASTMOD_EXHAUSTIVE_TESTS=ON
+```bash
+cmake -B build
+cmake --build build
+ctest --test-dir build --output-on-failure
 ```
 
-Under Windows, you can run tests as follows:
+For exhaustive tests:
 
+```bash
+cmake -B build -DFASTMOD_EXHAUSTIVE_TESTS=ON
+cmake --build build
+ctest --test-dir build --output-on-failure
 ```
+
+### Windows (Visual Studio)
+
+Ensure you're building for 64-bit (x64 or ARM64).
+
+```bash
+cmake -B build
 cmake --build build --config Release
-cd build
-ctest . --config Release
+ctest --test-dir build --output-on-failure -C Release
 ```
 
-Users of Visual Studio need to compile to a 64-bit binary, typically by selecting x64 or ARM64 in the build settings. Visual Studio should default on 64-bit builds on 64-bit systems.
+## Benchmarks
 
+In hashing benchmarks on Intel Skylake with Clang, this library outperforms compiler optimizations.
 
-##  Code samples
+![Benchmark results on Skylake with clang](docs/hashbenches-skylake-clang.png)
 
-In C, you can use the header as follows.
+For 64-bit operations (experimental):
 
-```C
-#include "fastmod.h"
-
-// unsigned...
-
-uint32_t d = ... ; // divisor, should be non-zero
-uint64_t M = computeM_u32(d); // do once
-
-fastmod_u32(a,M,d);// is a % d for all 32-bit unsigned values a.
-
-fastdiv_u32(a,M);// is a / d for all 32-bit unsigned values a, d>1.
-
-
-is_divisible(a,M);// tells you if a is divisible by d
-
-// signed...
-
-int32_t d = ... ; // should be non-zero and between [-2147483647,2147483647]
-int32_t positive_d = d < 0 ? -d : d; // absolute value
-uint64_t M = computeM_s32(d); // do once
-
-fastmod_s32(a,M,positive_d);// is a % d for all 32-bit a
-
-fastdiv_s32(a,M,d);// is a / d for all 32-bit a,  d must not be one of -1, 1, or -2147483648
-
+```bash
+make benchmark
 ```
 
-In C++, it is much the same except that every function is in the `fastmod` namespace so you need to prefix the calls with `fastmod::` (e.g., `fastmod::is_divisible`).
+Requires C++11, not supported on Visual Studio.
 
+## Contributing
 
-## Go version
+Contributions are welcome! Please:
 
-* There is a Go version of this library: https://github.com/bmkessler/fastdiv
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass
+5. Submit a pull request
 
+## License
 
-### (Speculative work) 64-bit benchmark
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
-It is an open problem to derive 64-bit divisions that are faster than what the compiler can produce for constant divisors.
-For comparisons to native `%` and `/` operations, as well as bitmasks, we have provided a benchmark with 64-bit div/mod. You can compile these benchmarks with `make benchmark`.
-These require C++11. It is not currently supported under Visual Studio.
+## Further Reading
 
+- [Faster Remainder by Direct Computation: Applications to Compilers and Software Libraries](https://arxiv.org/abs/1902.01961), Software: Practice and Experience 49 (6), 2019.
+
+### Related Projects
+
+- Go version: [fastdiv](https://github.com/bmkessler/fastdiv)
