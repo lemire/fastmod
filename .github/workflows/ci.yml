@@ -30,7 +30,7 @@ jobs:
           CC: ${{matrix.cc}}
           CXX: ${{matrix.cxx}}
         run: |
-          cmake -B build -DFASTMOD_EXHAUSTIVE_TESTS=ON
+          cmake -B build -DFASTMOD_QUICK_TESTS=ON
           cmake --build build
           ctest --test-dir build --output-on-failure
 
@@ -46,7 +46,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build and test
         run: |
-          cmake -B build -DFASTMOD_EXHAUSTIVE_TESTS=ON
+          cmake -B build -DFASTMOD_QUICK_TESTS=ON
           cmake --build build
           ctest --test-dir build --output-on-failure
 
@@ -83,6 +83,6 @@ jobs:
           CXXFLAGS: -fsanitize=address,undefined -fno-omit-frame-pointer
           LDFLAGS: -fsanitize=address,undefined
         run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Debug -DFASTMOD_EXHAUSTIVE_TESTS=ON
+          cmake -B build -DCMAKE_BUILD_TYPE=Debug -DFASTMOD_QUICK_TESTS=ON
           cmake --build build
           ctest --test-dir build --output-on-failure

@@ -13,6 +13,19 @@ using namespace fastmod;
 typedef fastmod_u128_t __uint128_t;
 #endif
 
+/* When FASTMOD_QUICK_TESTS is defined, the exhaustive 32-bit dividend sweep
+ * (2^32 values per divisor) is replaced by a much smaller sweep so that the
+ * tests complete quickly in CI (especially under sanitizers). */
+#ifdef FASTMOD_QUICK_TESTS
+#define FASTMOD_U32_DIVIDEND_LIMIT UINT64_C(0x100000)
+#define FASTMOD_S32_DIVIDEND_MIN   -INT64_C(0x80000)
+#define FASTMOD_S32_DIVIDEND_MAX    INT64_C(0x80000)
+#else
+#define FASTMOD_U32_DIVIDEND_LIMIT UINT64_C(0x100000000)
+#define FASTMOD_S32_DIVIDEND_MIN   -INT64_C(0x80000000)
+#define FASTMOD_S32_DIVIDEND_MAX    INT64_C(0x80000000)
+#endif
+
 bool testunsigned64(uint64_t min, uint64_t max, bool verbose) {
   for (uint64_t d = min; (d <= max) && (d >= min); d++) {
     if (d == 0) {
@@ -58,7 +71,7 @@ bool testunsigned(uint32_t min, uint32_t max, bool verbose) {
     else
       printf(".");
     fflush(NULL);
-    for (uint64_t a64 = 0; a64 < UINT64_C(0x100000000); a64++) {
+    for (uint64_t a64 = 0; a64 < FASTMOD_U32_DIVIDEND_LIMIT; a64++) {
       uint32_t a = (uint32_t)a64;
       uint32_t computedFastMod = fastmod_u32(a, M, d);
       if (computedMod != computedFastMod) {
@@ -103,7 +116,7 @@ bool testdivunsigned(uint32_t min, uint32_t max, bool verbose) {
     else
       printf(".");
     fflush(NULL);
-    for (uint64_t a64 = 0; a64 < UINT64_C(0x100000000); a64++) {
+    for (uint64_t a64 = 0; a64 < FASTMOD_U32_DIVIDEND_LIMIT; a64++) {
       uint32_t a = (uint32_t)a64;
       uint32_t computedDiv = a / d;
 
@@ -144,10 +157,10 @@ bool testsigned(int32_t min, int32_t max, bool verbose) {
       printf(".");
     fflush(NULL);
     int32_t positive_d = d < 0 ? -d : d;
-    uint64_t absolute_min32 = -INT64_C(0x80000000);
-    if (d == -1)
+    int64_t absolute_min32 = FASTMOD_S32_DIVIDEND_MIN;
+    if (d == -1 && absolute_min32 == -INT64_C(0x80000000))
       absolute_min32 += 1; // otherwise, result is undefined
-    for (int64_t a64 = absolute_min32; a64 < INT64_C(0x80000000); a64++) {
+    for (int64_t a64 = absolute_min32; a64 < FASTMOD_S32_DIVIDEND_MAX; a64++) {
       int32_t a = (int32_t)a64;
       int32_t computedMod = a % d;
       int32_t computedFastMod = fastmod_s32(a, M, positive_d);
@@ -195,7 +208,7 @@ bool testdivsigned(int32_t min, int32_t max, bool verbose) {
     else
       printf(".");
     fflush(NULL);
-    for (int64_t a64 = -INT64_C(0x80000000); a64 < INT64_C(0x80000000); a64++) {
+    for (int64_t a64 = FASTMOD_S32_DIVIDEND_MIN; a64 < FASTMOD_S32_DIVIDEND_MAX; a64++) {
       int32_t a = (int32_t)a64;
       int32_t computedDiv = a / d;
       int32_t computedFastDiv = fastdiv_s32(a, M, d);
