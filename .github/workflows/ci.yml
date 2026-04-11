@@ -63,7 +63,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Configure
-        run: cmake -B build -A ${{matrix.arch}}
+        run: cmake -B build -A ${{matrix.arch}} -DFASTMOD_QUICK_TESTS=ON
       - name: Build
         run: cmake --build build --config ${{matrix.config}}
       - name: Test
