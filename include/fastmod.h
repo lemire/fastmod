@@ -48,6 +48,10 @@ FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
   }
   return mul128_u32(lowbits, d);
 }
+// Returns the most significant 64 bits of the signed 128-bit product a * b.
+FASTMOD_API int64_t mul128_s64_hi(int64_t a, int64_t b) {
+  return __mulh(a, b);
+}
 
 // 64-bit support requires _umul128 and __umulh (available on both x64 and ARM64).
 // x64 additionally has _udiv128, _addcarry_u64, _subborrow_u64.
@@ -170,6 +174,10 @@ FASTMOD_API uint64_t mul128_s32(uint64_t lowbits, int32_t d) {
   }
   return mul128_u32(lowbits, d);
 }
+// Returns the most significant 64 bits of the signed 128-bit product a * b.
+FASTMOD_API int64_t mul128_s64_hi(int64_t a, int64_t b) {
+  return (int64_t)(((__int128_t)a * b) >> 64);
+}
 
 // This is for the 64-bit functions.
 FASTMOD_API uint64_t mul128_u64(__uint128_t lowbits, uint64_t d) {
@@ -243,11 +251,17 @@ FASTMOD_API int32_t fastmod_s32(int32_t a, uint64_t M, int32_t positive_d) {
 // fastdiv computes (a / d) given a precomputed M, assumes that d must not
 // be one of -1, 1, or -2147483648
 FASTMOD_API int32_t fastdiv_s32(int32_t a, uint64_t M, int32_t d) {
-  uint64_t highbits = mul128_s32(M, a);
-  highbits += (a < 0 ? 1 : 0);
-  if (d < 0)
-    return -(int32_t)(highbits);
-  return (int32_t)(highbits);
+  // We want floor(M * a / 2^64) where M is unsigned and a is signed.
+  // When |d| > 2, M < 2^63, so a signed multiplication gives it directly:
+  // no branch on the sign of a. When |d| == 2, M = 2^63 + 1 is read as the
+  // negative value M - 2^64, so we add a back.
+  int64_t signed_M = (int64_t)M;
+  int64_t highbits = mul128_s64_hi(a, signed_M) + (a & (signed_M >> 63));
+  // Round toward zero: add one when a < 0.
+  int32_t q = (int32_t)highbits + (a < 0 ? 1 : 0);
+  // Negate when d < 0.
+  int32_t sign_d = d >> 31;
+  return (q ^ sign_d) - sign_d;
 }
 
 // What follows is the 64-bit functions.
